@@ -1,55 +1,31 @@
 <!DOCTYPE html>
 <html>
-  <script src="./mimi.js"></script>
-  <body>
-    <canvas onClick="wakeup()" id="mimi" width="150" height="150"></canvas>
-  </body>
+  <body style="width: 1000; height: 1000px"></body>
+  <script src="./engine/base.js"></script>
+  <script src="./engine/entity.js"></script>
+  <script src="./engine/lib.js"></script>
   <script>
-    const ctx = document.querySelector("canvas#mimi").getContext("2d");
-    CanvasRenderingContext2D.prototype.roundRect = function (
-      x,
-      y,
-      w,
-      h,
-      r,
-      color
-    ) {
-      if (w < 2 * r) r = w / 2;
-      if (h < 2 * r) r = h / 2;
+    const gameController = new GameController(
+      0,
+      0,
+      1000,
+      1000,
+      "gameController",
+      "center"
+    );
+    const viewObject = new ViewObject(100, 100, 600, 400, "ViewObject", "center");
+    const center = new Character(200, 200, 40, 40, "game1", "mimi_game");
+    const base1 = new Character(180, 300, 30, 30, "game1", "mimi_game");
+    const base2 = new Character(100, 200, 30, 30, "game1", "mimi_game");
 
-      this.beginPath();
-      this.moveTo(x + r, y);
-      this.arcTo(x + w, y, x + w, y + h, r);
-      this.arcTo(x + w, y + h, x, y + h, r);
-      this.arcTo(x, y + h, x, y, r);
-      this.arcTo(x, y, x + w, y, r);
-      this.closePath();
-      if (color) {
-        this.fillStyle = color;
-        this.fill();
-      }
-      return this;
-    };
-    const mimi = new MiMi(ctx);
+    center.color = "black";
+    base1.color = "red";
+    base2.color = "red";
+    viewObject.color = "gray";
 
-    console.log(mimi.range_left_eye, mimi.range_right_eye);
-    let timer;
-    let timer1;
+    gameController.addList([viewObject, center, base1, base2]);
+    gameController.render();
 
-    function wakeup() {
-      return mimi.wakeup();
-    }
-
-    document.addEventListener("mousemove", (e) => {
-      clearTimeout(timer);
-      clearTimeout(timer1);
-      timer = setTimeout(() => {
-        mimi.move_both_eye_with_time(e.clientX, e.clientY, 1);
-      }, 200);
-
-      timer1 = setTimeout(() => {
-        mimi.sleep();
-      }, 5000);
-    });
+    console.log(gameController);
   </script>
 </html>
