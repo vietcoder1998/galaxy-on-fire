@@ -30,7 +30,7 @@ function drawSelected(ctx, x, y, w, h) {
 
 function drawRawSelected(ctx, x, y, w, h) {
   ctx.beginPath();
-  ctx.fillStyle="#ffffff00"
+  ctx.fillStyle = "#ffffff00";
   ctx.moveTo(x, y);
   ctx.lineTo(x, y + h);
   ctx.lineTo(x + w, y + h);
@@ -51,13 +51,13 @@ function detectRange(ctx, x, y, w, h) {
   ctx.stroke();
 }
 
-function drawX(ctx, x, y, s) {
+function drawX(ctx, x, y, s, w) {
   ctx.beginPath();
   ctx.moveTo(x - (s ?? 20), y - (s ?? 20));
   ctx.lineTo(x + (s ?? 20), y + (s ?? 20));
-
   ctx.moveTo(x + (s ?? 20), y - (s ?? 20));
   ctx.lineTo(x - (s ?? 20), y + (s ?? 20));
+  ctx.lineWidth = (w ?? 3) + "px";
   ctx.stroke();
 
   return { x, y };

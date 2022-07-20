@@ -5,27 +5,25 @@
   <script src="./engine/entity.js"></script>
   <script src="./engine/lib.js"></script>
   <script>
-    const gameController = new GameController(
-      0,
-      0,
-      1000,
-      1000,
-      "gameController",
-      "center"
+    const scene1 = new Scene("scene1");
+    const viewObject = new ViewObject(
+      "camera",
+      100,
+      100,
+      600,
+      400,
+      "ViewObject"
     );
-    const viewObject = new ViewObject(100, 100, 600, 400, "ViewObject", "center");
-    const center = new Character(200, 200, 40, 40, "game1", "mimi_game");
-    const base1 = new Character(180, 300, 30, 30, "game1", "mimi_game");
-    const base2 = new Character(100, 200, 30, 30, "game1", "mimi_game");
+    const center = new Character("center", 200, 200, 40, 40, "game1");
+    const base1 = new Character("bonke1", 180, 300, 30, 30, "game1");
+    const base2 = new Character("bonke2", 100, 200, 30, 30, "game1");
 
     center.color = "black";
     base1.color = "red";
     base2.color = "red";
     viewObject.color = "gray";
 
-    gameController.addList([viewObject, center, base1, base2]);
-    gameController.render();
-
-    console.log(gameController);
+    scene1.addList([viewObject, center, base1, base2]);
+    scene1.render();
   </script>
 </html>

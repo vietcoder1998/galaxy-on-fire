@@ -2,12 +2,20 @@ class Character extends GameObject {
   type = "character";
   color = "black";
   zIndex = 0;
+
+  constructor(x, y, w, h, name, id, s) {
+    super(x, y, w, h, name, id, s);
+  }
 }
 
 class ViewObject extends GameObject {
   type = "map";
   color = "gray";
   zIndex = -1;
+
+  constructor(x, y, w, h, name, id, s) {
+    super(x, y, w, h, name, id, s);
+  }
 
   loop() {
     // frame and write context
@@ -24,10 +32,14 @@ class ViewObject extends GameObject {
   }
 }
 
-class Mouse extends GameObject {
+class MouseObject extends GameObject {
   zIndex = 999;
   selected = false;
   stop = false;
+
+  constructor(x, y, w, h, name, id, s) {
+    super(x, y, w, h, name, id, s);
+  }
 
   onMouseDown(e) {
     if (!this.selected) {
@@ -49,7 +61,6 @@ class Mouse extends GameObject {
   onMouseMove(e) {
     this.w = e.x - this.x;
     this.h = e.y - this.y;
-    this.stop = false;
   }
 
   onMouseUp(e) {
@@ -58,16 +69,17 @@ class Mouse extends GameObject {
     this.w = 0;
     this.h = 0;
     this.selected = false;
+    this.stop = false;
   }
 
   draw(context) {
-    if (this.ctx && !this.stop && this.selected) {
+    if (this.ctx && this.selected) {
       if (this.dImage && this.dImage.src && this.imgs.length > 0) {
         this.ctx.drawImage(this.dImage.src, init.x);
       } else {
         //
         if (this.stop) {
-          drawX(this.ctx, this.x, this.y);
+          drawX(this.ctx, this.x, this.y, 10, 3);
         }
 
         // clear
@@ -82,4 +94,30 @@ class Mouse extends GameObject {
       }
     }
   }
+}
+
+class Tile extends GameObject {
+  draw(context) {
+    if (this.ctx && !this.stop && this.selected) {
+      if (this.dImage && this.dImage.src && this.imgs.length > 0) {
+        this.ctx.drawImage(this.dImage.src, init.x);
+      } else {
+        //
+
+        // clear
+        drawRawSelected(this.ctx, this.x, this.y, this.w, this.h);
+
+        if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
+          this.dImage = this.imgs[0];
+        } else {
+          this.imgFrame += 1;
+          this.dImage = this.imgs[this.imgFrame];
+        }
+      }
+    }
+  }
+}
+
+class TitleMap extends GameObject {
+  matrix = [];
 }

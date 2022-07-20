@@ -1,67 +1,76 @@
-class ObjectBehavior {
-  selected;
-
-  onMouseDown(e, cb) {}
-  onMouseMove(e, cb) {}
-  onKeyPress(e, cb) {}
-  onMouseUp(e, cb) {}
-}
-
-class Component extends ObjectBehavior {
-  props = {};
-  x;
-  y;
-  w;
-  h;
-  s;
-  r;
-  name;
+class Component {
   id;
-  color;
+  name;
   stop = false;
-  fps = 60;
-  frame = 0;
+  ctx;
 
-  constructor(x, y, w, h, name, id, s) {
-    super();
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.id = id;
+  constructor(name) {
     this.name = name;
-    this.s = s;
     this.init(this);
   }
 
   // init() start on game
-  init(context, cb) {}
+  async init(context, cb) {}
+
+  // launch
+  launch() {
+    try {
+      if (this.g) {
+        this.y += this.vector.y;
+        this.vector.y += this.g / 60;
+      }
+      // Action to render
+      this.beforeDraw(this);
+      this.loop(this);
+      this.draw(this);
+      this.afterDraw(this);
+      // End
+    } catch (error) {
+      alert("error: ", error);
+      throw error;
+    }
+  }
+
+  // Action life cycle
+  beforeDraw(context) {}
+  loop(context) {}
+  draw(context, cb) {}
+  afterDraw(context) {}
+
+  // behavior
+  onMouseDown(e, cb) {}
+  onMouseMove(e, cb) {}
+  onKeyPress(e, cb) {}
+  onMouseUp(e, cb) {}
+
+  // clear view
+  clear() {
+    this.ctx.clearRect(this.x, this.y, this.w, this.h);
+  }
 }
 
-// init game base
-class GameController extends Component {
+class Scene extends Component {
+  w;
+  h;
+  name;
   fps = 60;
   frame = 0;
+  canvas;
   stop = false;
-  canvas = {};
-  ctx = {};
   obList = [];
   action;
   selector = {};
   zIndex = 0;
   lastClick = { x: 0, y: 0 };
   detectList = [];
-  color = "black";
-  mouse = new Mouse(0, 0, 0, 0, "mouse", "mouse", 0);
-  time = 0;
-  timeMachine;
 
-  constructor(x, y, w, h, name, id, s) {
-    super(x, y, w, h, name, id, s);
-    this.start();
+  constructor(name, fps) {
+    super(name);
+    this.fps = fps ?? 60;
   }
 
-  start() {
+  // init
+  init(context) {
     const body =
       document.querySelector("body") ?? document.createElement("body");
 
@@ -69,11 +78,14 @@ class GameController extends Component {
       document.append(body);
     }
 
+    console.log(this);
+
+    this.mouse = new MouseObject(0, 0, 0, 0, "mouse", "mouse", 0);
+
     this.canvas = document.createElement("canvas");
-    this.canvas.id = this.id;
-    this.canvas.style.position = "absolute";
-    this.canvas.width = this.w;
-    this.canvas.height = this.h;
+    this.canvas.id = this.name;
+    this.canvas.width = this.w ?? 1000;
+    this.canvas.height = this.h ?? 1000;
     this.canvas.style.top = this.x + "px";
     this.canvas.style.left = this.y + "px";
     this.ctx = this.canvas.getContext("2d");
@@ -84,6 +96,7 @@ class GameController extends Component {
       const x = e.clientX - this.x;
       const y = e.clientY - this.y;
 
+      // behavior on mouse move
       this.onMouseMove(x, y);
       this.mouse.onMouseMove({ ...e, x, y });
       this.obList?.forEach((ob) => ob?.onMouseMove({ ...e, x, y }));
@@ -118,93 +131,6 @@ class GameController extends Component {
     this.timeMachine = setInterval(() => (this.time += 1), 1000);
   }
 
-  end() {
-    clearInterval(this.timeMachine);
-  }
-
-  onMouseDown(e) {
-    const { x, y } = e;
-    this.detectList = [];
-
-    this.obList?.forEach((ob) => {
-      const inX = ob?.x < x && x < ob?.x + ob?.w;
-      const inY = ob?.y < y && y < ob?.y + ob?.h;
-
-      if (inX && inY && ob?.zIndex > -1) {
-        ob.selected = true;
-        this.detectList.push(ob);
-      } else {
-        ob.selected = false;
-      }
-    });
-
-    if (this.detectList && this.detectList.length > 0) {
-      this.detectList.forEach((item) => {
-        item.selected = true;
-      });
-    }
-  }
-
-  onMouseMove(e) {
-    const { x, y, w, h, selected, stop } = this.mouse;
-    this.detectList = [];
-
-    if (selected && stop) {
-      this.obList?.forEach((ob) => {
-        const range = [
-          [x, y],
-          [x + w, y],
-          [x + w, y],
-          [x, y + h],
-        ];
-
-        const detect = [
-          [ob.x, ob.y],
-          [ob.x + ob.w, ob.y],
-          [ob.x + ob.w, ob.y],
-          [ob.x + ob.w, ob.y + ob.h],
-        ];
-
-        const r0 =
-          detect[0][0] < range[3][0] &&
-          detect[0][0] > range[0][0] &&
-          detect[0][1] > range[3][1] &&
-          detect[0][1] < range[0][1];
-
-        const r1 =
-          detect[1][0] < range[3][0] &&
-          detect[1][0] > range[0][0] &&
-          detect[1][1] > range[3][1] &&
-          detect[1][1] < range[0][1];
-
-        const r2 =
-          detect[2][0] < range[3][0] &&
-          detect[2][0] > range[0][0] &&
-          detect[2][1] > range[3][1] &&
-          detect[2][1] < range[0][1];
-
-        const r3 =
-          detect[3][0] < range[3][0] &&
-          detect[3][0] > range[0][0] &&
-          detect[3][1] > range[3][1] &&
-          detect[3][1] < range[0][1];
-
-        if ((r0 || r1 || r2 || r3) && ob?.zIndex > -1) {
-          ob.selected = true;
-          this.detectList.push(ob);
-        } else {
-          ob.selected = false;
-        }
-      });
-
-      if (this.detectList && this.detectList.length > 0) {
-        this.detectList.forEach((item) => {
-          item.selected = true;
-        });
-      }
-    }
-  }
-
   // add game object
   add(ob, isHead) {
     if (ob) {
@@ -228,31 +154,25 @@ class GameController extends Component {
     }
   }
 
-  render() {
-    this.doAction(() => {
-      if (this.obList.length > 0) {
-        this?.obList?.forEach((item) => {
-          item.launch();
-        });
-      }
-
-      // mouse render and detect
-      this.mouse.draw();
-    });
-  }
-
-  doAction(callback) {
+  render(callback) {
     try {
-      if (!this.stop && callback) {
+      if (!this.stop) {
         this.action = setInterval(() => {
-          // auto clear
-          this.ctx.clearRect(0, 0, this.w, this.h);
-          if (callback) {
-            callback();
+          // clear view
+          this.clear();
+
+          // render object list
+          if (this.obList.length > 0) {
+            this?.obList?.forEach((item) => {
+              item.launch();
+            });
           }
+
+          // render mouse
+          this.mouse.draw();
         }, 1000 / this.fps);
       } else {
-        console.log("game stop");
+        console.log("____GAME STOP____");
       }
     } catch (error) {
       setTimeout(() => {
@@ -261,12 +181,89 @@ class GameController extends Component {
       throw error;
     }
   }
+
+  onMouseDown(e) {
+    const { x, y } = e;
+    this.detectList = [];
+    this.obList?.forEach((ob) => {
+      const inX = ob?.x < x && x < ob?.x + ob?.w;
+      const inY = ob?.y < y && y < ob?.y + ob?.h;
+
+      if (inX && inY && ob?.zIndex > -1) {
+        ob.selected = !ob.selected;
+        this.detectList.push(ob);
+      }
+    });
+
+    if (this.detectList && this.detectList.length > 0) {
+      this.detectList.forEach((item) => {
+        item.selected = true;
+      });
+    }
+  }
+
+  onMouseMove(e) {
+    const { x, y, w, h, selected, stop } = this.mouse;
+    this.detectList = [];
+
+    if (selected && !stop) {
+      this.obList?.forEach((ob) => {
+        const tX = x + w;
+        const tY = y + h;
+        const minX = tX > x ? x : tX;
+        const maxX = tX < x ? x : tX;
+        const minY = tY > y ? y : tY;
+        const maxY = tY < y ? y : tY;
+        const detect = [
+          [ob.x, ob.y],
+          [ob.x + ob.w, ob.y],
+          [ob.x + ob.w, ob.y + ob.w],
+          [ob.x, ob.y + ob.h],
+        ];
+
+        let inRange = false;
+        detect.forEach((dt) => {
+          if (dt[0] > minX && dt[0] < maxX && dt[1] > minY && dt[1] < maxY) {
+            inRange = true;
+          }
+        });
+
+        if (inRange && ob?.zIndex > -1) {
+          ob.selected = true;
+          this.detectList.push(ob);
+        } else {
+          ob.selected = false;
+        }
+      });
+
+      if (this.detectList && this.detectList.length > 0) {
+        this.detectList.forEach((item) => {
+          item.selected = true;
+        });
+      }
+    }
+  }
+}
+
+// init game base
+class GameController extends Component {
+  constructor() {
+    super();
+    this.init(this);
+  }
+
+  // init
+  async init(context) {}
 }
 
 // GameObject for Game render
 class GameObject extends Component {
-  // pos
-  ctx = {};
+  x = 0;
+  y = 0;
+  w = 0;
+  h = 0;
+  s = 0;
+  r = 0;
   type;
   vector = {
     x: 0,
@@ -282,31 +279,16 @@ class GameObject extends Component {
   imgFrame = 0;
   state = "active";
 
-  constructor(x, y, w, h, name, id, s) {
-    super(x, y, w, h, name, id, s);
+  constructor(name, x, y, w, h, id, r, s) {
+    super(name)
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.id = id;
+    this.r = r;
+    this.s = s;
   }
-  launch() {
-    try {
-      if (this.g) {
-        this.y += this.vector.y;
-        this.vector.y += this.g / 60;
-      }
-      this.beforeDraw(this);
-      this.loop(this);
-      this.draw(this);
-      this.afterDraw(this);
-    } catch (error) {
-      alert("error: ", error);
-      this.end;
-      throw error;
-    }
-  }
-
-  // loop action
-  loop(context) {}
-
-  // before draw
-  beforeDraw(context) {}
 
   // add context to drive
   draw(context) {
@@ -315,7 +297,8 @@ class GameObject extends Component {
         this.ctx.drawImage(this.dImage.src, init.x);
       } else {
         // clear
-        this.ctx.clearRect(this.x, this.y, this.w, this.h);
+        this.clear();
+
         // fill color for background
         this.ctx.fillStyle = this.color;
 
@@ -335,5 +318,4 @@ class GameObject extends Component {
       }
     }
   }
-  afterDraw(context) {}
 }
