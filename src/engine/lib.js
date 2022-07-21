@@ -72,7 +72,7 @@ function drawDashedLine(ctx, x, y, ex, ey) {
   ctx.strokeStyle = "#4eff00";
   ctx.setLineDash([15, 3]);
   ctx.moveTo(x, y);
-  ctx.lineTo(ex, ex);
+  ctx.lineTo(ex, ey);
   ctx.stroke();
   ctx.restore();
 }
