@@ -5,13 +5,36 @@
     <script src="./engine/entity.js"></script>
     <script src="./engine/lib.js"></script>
   </head>
-  <body style="width: 1000; height: 1000px"></body>
+  <canvas id="defaultGame">
   <script>
-    const scene1 = new Scene("scene1", 0, 0, 800, 500);
-    const viewObject = new ViewObject("camera", 50, 50, 600, 350, "ViewObject");
-    const center = new Character("center", 200, 200, 40, 40, "game1");
-    const base1 = new Character("bonke1", 180, 300, 30, 30, "game1");
-    const base2 = new Character("bonke2", 100, 200, 30, 30, "game1");
+    const scene1 = new Scene("scene1", 0, 0, 800, 500, "test_id", 1000);
+
+    // extends character
+    class Tank extends GameObject {
+      constructor(name, x, y, w, h, id, s) {
+        super(name, x, y, w, h, id, s);
+        this.name = name;
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.s = s;
+        this.id = id;
+      }
+
+      onMouseDown(e) {
+        console.log('listen on', this)
+        if (this.selected) {
+          const { x, y } = this;
+          drawDashedLine(this.ctx, x, y, e.x, e.y);
+        }
+      }
+    }
+
+    const viewObject = new ViewObject("camera", 50, 50, 600, 350, "Camera");
+    const center = new Tank("center", 200, 200, 40, 40, "game1");
+    const base1 = new Tank("boongke1", 180, 300, 30, 30, "game1");
+    const base2 = new Tank("boongke2", 100, 200, 30, 30, "game1");
 
     viewObject.color = "gray";
     center.color = "black";
@@ -19,8 +42,6 @@
     base2.color = "red";
 
     scene1.addList([viewObject, center, base1, base2]);
-
-    setTimeout(() => scene1.render(), 500);
     scene1.render();
   </script>
 </html>

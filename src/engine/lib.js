@@ -25,6 +25,7 @@ function drawSelected(ctx, x, y, w, h) {
   ctx.lineTo(x + 4 + w, y + -4);
   ctx.lineTo(x - 4, y - 4);
   ctx.strokeStyle = "#4eff00";
+  ctx.lineWidth = 1;
   ctx.stroke();
 }
 
@@ -37,6 +38,7 @@ function drawRawSelected(ctx, x, y, w, h) {
   ctx.lineTo(x + w, y);
   ctx.lineTo(x, y);
   ctx.strokeStyle = "#4eff00";
+  ctx.lineWidth = 1;
   ctx.stroke();
 }
 
@@ -48,6 +50,7 @@ function detectRange(ctx, x, y, w, h) {
   ctx.lineTo(x + 4 + w, y + -4);
   ctx.lineTo(x - 4, y - 4);
   ctx.strokeStyle = "#4eff00";
+  ctx.lineWidth = 1;
   ctx.stroke();
 }
 
@@ -57,8 +60,19 @@ function drawX(ctx, x, y, s, w) {
   ctx.lineTo(x + (s ?? 20), y + (s ?? 20));
   ctx.moveTo(x + (s ?? 20), y - (s ?? 20));
   ctx.lineTo(x - (s ?? 20), y + (s ?? 20));
-  ctx.lineWidth = (w ?? 3) + "px";
+  ctx.lineWidth = 1;
   ctx.stroke();
 
   return { x, y };
+}
+
+function drawDashedLine(ctx, x, y, ex, ey) {
+  // Dashed line
+  ctx.beginPath();
+  ctx.strokeStyle = "#4eff00";
+  ctx.setLineDash([15, 3]);
+  ctx.moveTo(x, y);
+  ctx.lineTo(ex, ex);
+  ctx.stroke();
+  ctx.restore();
 }

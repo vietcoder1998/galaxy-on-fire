@@ -1,54 +1,81 @@
 class Character extends GameObject {
+  x;
+  y;
+  w;
+  h;
   type = "character";
   color = "black";
   zIndex = 0;
+  speed = 0.1;
 
   constructor(name, x, y, w, h, id, s) {
     super(name, x, y, w, h, id, s);
+    this.name = name;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.s = s;
+    this.id = id;
   }
 }
 
-class GameController extends Component {}
-
 class ViewObject extends GameObject {
+  x;
+  y;
+  w;
+  h;
   type = "map";
   color = "gray";
   zIndex = -999;
 
   constructor(name, x, y, w, h, id, s) {
     super(name, x, y, w, h, id, s);
+    this.name = name;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.id = id;
+    this.s = s;
   }
 }
 
 class MouseObject extends GameObject {
   zIndex = 999;
   selected = false;
+  down = false;
 
-  constructor(x, y, w, h, name, id, s) {
-    super(x, y, w, h, name, id, s);
+  constructor(name, x, y, w, h, id, s) {
+    super(name, x, y, w, h, id, s);
+    this.name = name;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.s = s;
+    this.id = id;
   }
 
   onMouseDown(e) {
-    if (!this.selected) {
-      this.x = e.x;
-      this.y = e.y;
-      this.w = 0;
-      this.h = 0;
+    console.log("e ->", mouse);
+    this.x = e.clientX;
+    this.y = e.clientY;
 
-      this.selected = true;
-    } else {
-      this.x = e.x;
-      this.y = e.y;
-      this.w = 0;
-      this.h = 0;
-    }
+    this.w = 0;
+    this.h = 0;
 
+    this.selected = true;
+    this.down = true;
     this.stop = true;
   }
 
   onMouseMove(e) {
-    this.w = e.x - this.x;
-    this.h = e.y - this.y;
+    this.w = e.clientX - this.x;
+    this.h = e.clientX - this.y;
+
+    this.x = e.clientX;
+    this.y = e.clientY;
     this.stop = false;
   }
 
@@ -59,12 +86,13 @@ class MouseObject extends GameObject {
     this.h = 0;
     this.selected = false;
     this.stop = false;
+    this.down = false;
   }
 
   draw(context) {
     if (this.ctx && this.selected) {
       if (this.dImage && this.dImage.src && this.imgs.length > 0) {
-        this.ctx.drawImage(this.dImage.src, init.x);
+        this.ctx.drawImage(this.dImage.src, this.dImage.x, this.dImage.y);
       } else {
         if (this.stop) {
           drawX(this.ctx, this.x - 10, this.y - 10, 10, 3);
@@ -78,14 +106,16 @@ class MouseObject extends GameObject {
             this.dImage = this.imgs[this.imgFrame];
           }
         }
-
-        // clear
       }
     }
   }
 }
 
-class Tile extends GameObject {
+class TileObject extends GameObject {
+  x;
+  y;
+  w;
+  h;
   draw(context) {
     if (this.ctx && !this.stop && this.selected) {
       if (this.dImage && this.dImage.src && this.imgs.length > 0) {
@@ -107,6 +137,6 @@ class Tile extends GameObject {
   }
 }
 
-class TitleMap extends GameObject {
+class TitleMapObject extends GameObject {
   matrix = [];
 }

@@ -1,15 +1,42 @@
-class Component {
+class Behavior {
+  // behavior with document
+  onMouseDown(e) {}
+  onMouseMove(e) {}
+  onKeyDown(e) {}
+  onKeyUp(e) {}
+  onMouseUp(e) {}
+
+  constructor() {
+    document.onmousemove = this.onMouseMove;
+    document.onmouseup = this.onMouseUp;
+    document.onmousedown = this.onMouseDown;
+    document.onkeydown = this.onKeyDown;
+    document.onkeyup = this.onKeyUp;
+  }
+}
+class Component extends Behavior {
+  x;
+  y;
+  w;
+  h;
   id;
   name;
-  stop = false;
+  stop;
   ctx;
+  selected;
 
-  constructor(name, x, y, w, h) {
+  constructor(name, x, y, w, h, id, s) {
+    super()
     this.name = name;
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
+    this.id = id;
+    this.s = s;
+
+    // listen event
+
     this.init();
   }
 
@@ -72,24 +99,14 @@ class Component {
   // action in after draw
   afterDraw(context) {}
 
-  // behavior
-  onMouseDown(e, cb) {}
-  onMouseMove(e, cb) {}
-  onKeyPress(e, cb) {}
-  onMouseUp(e, cb) {}
-
   // clear
   clear(context) {
     this.ctx.clearRect(this.x, this.y, this.w, this.h);
   }
 }
 
+// base component
 class Scene extends Component {
-  w = 0;
-  h = 0;
-  x = 0;
-  y = 0;
-  name;
   fps = 60;
   frame = 0;
   canvas;
@@ -100,19 +117,26 @@ class Scene extends Component {
   zIndex = 0;
   lastClick = { x: 0, y: 0 };
   detectList = [];
+  mouse = new MouseObject(0, 0, 0, 0, "mouse", "mouse", 0);
 
-  constructor(name, x, y, w, h, fps) {
-    super(name, x, y, w, h);
-    this.fps = fps ?? 60;
+  constructor(name, x, y, w, h, id, s) {
+    super(name, x, y, w, h, id, s);
+    this.name = name;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.id = id;
+    this.s = s;
+
+    this.start();
   }
 
   // init
-  init(context) {
+  start() {
     // init canvas
-    console.log("run init");
-
-    this.mouse = new MouseObject(0, 0, 0, 0, "mouse", "mouse", 0);
-    const canvas = document.createElement("canvas");
+    const canvas = document.querySelector("canvas#defaultGame");
+    const ctx = canvas.getContext("2d");
 
     canvas.id = this.name;
     canvas.width = this.w;
@@ -120,55 +144,10 @@ class Scene extends Component {
     canvas.style.top = this.x + "px";
     canvas.style.left = this.y + "px";
 
-    const body =
-      document.querySelector("body") ?? document.createElement("body");
-
-    if (!body) {
-      document.append(body);
-    }
-
-    body.append(canvas);
-
-    // init detail for canvas
+    // map canvas
     this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
-    this.mouse.ctx = this.ctx;
-
-    // listen event
-    this.canvas.onmousemove = (e) => {
-      const x = e.clientX - this.x;
-      const y = e.clientY - this.y;
-
-      // behavior on mouse move
-      this.onMouseMove(x, y);
-      this.mouse.onMouseMove({ ...e, x, y });
-      this.obList?.forEach((ob) => ob?.onMouseMove({ ...e, x, y }));
-    };
-
-    // binding data for event with mousedown
-    this.canvas.onmousedown = (e) => {
-      const x = e.clientX - this.x;
-      const y = e.clientY - this.y;
-
-      // behavior on click
-      this.onMouseDown({ ...e, x, y });
-      this.mouse.onMouseDown({ ...e, x, y });
-      this.obList?.forEach((ob) => ob?.onMouseDown({ ...e, x, y }));
-    };
-    this.canvas.onkeypress = (e) => {
-      const x = e.clientX - this.x;
-      const y = e.clientY - this.y;
-
-      this.obList?.forEach((ob) => ob?.onKeyPress({ ...e, x, y }));
-    };
-    this.canvas.onmouseup = (e) => {
-      const x = e.clientX - this.x;
-      const y = e.clientY - this.y;
-      this.mouse.onMouseUp({ ...e, x, y });
-      this.obList?.forEach((ob) => ob?.onMouseUp({ ...e, x, y }));
-    };
-
-    // calculator time
+    this.ctx = ctx;
+    this.mouse.ctx = ctx;
     this.timeMachine = setInterval(() => (this.time += 1), 1000);
   }
 
@@ -195,16 +174,15 @@ class Scene extends Component {
     }
   }
 
+  // render ( only scene render)
   render(callback) {
     try {
       // render view
-      if (!this.stop) {
-        console.log(this.x, this.y, this.w, this.h);
-
-        // clear
+      if (!this.stop && this.ctx) {
+        // clear rect
         this.action = setInterval(() => {
           // clear object
-          this.clear();
+          this.ctx.clearRect(this.x, this.y, this.w, this.h);
 
           // render object list
           if (this.obList.length > 0) {
@@ -217,12 +195,16 @@ class Scene extends Component {
           this.mouse.launch();
         }, 1000 / this.fps);
       } else {
+        if (!this.ctx) {
+          console.log("Game CTX need be to define");
+        }
+
         console.log("____GAME STOP____");
       }
     } catch (error) {
       clearInterval(this.action);
 
-      console.log("error", error);
+      ole.log("error", error);
       throw error;
     }
   }
@@ -244,16 +226,25 @@ class Scene extends Component {
 
   onMouseDown(e) {
     const { x, y } = e;
+
+    console.log("listen in mousedown", e);
     this.detectList = [];
+
     this.obList?.forEach((ob) => {
       const inX = ob?.x < x && x < ob?.x + ob?.w;
       const inY = ob?.y < y && y < ob?.y + ob?.h;
 
       if (inX && inY && ob?.zIndex > -1) {
-        ob.selected = !ob.selected;
+        ob.selected = true;
+
+        console.log(ob);
         this.detectList.push(ob);
+      } else {
+        ob.selected = false;
       }
     });
+
+    console.log(this.detectList);
 
     if (this.detectList && this.detectList.length > 0) {
       this.detectList.forEach((item) => {
@@ -266,14 +257,19 @@ class Scene extends Component {
     const { x, y, w, h, selected, stop } = this.mouse;
     this.detectList = [];
 
+    // detect event in mouse change
+
     if (selected && !stop) {
       this.obList?.forEach((ob) => {
         const tX = x + w;
         const tY = y + h;
+
         const minX = tX > x ? x : tX;
         const maxX = tX < x ? x : tX;
+
         const minY = tY > y ? y : tY;
         const maxY = tY < y ? y : tY;
+
         const detect = [
           [ob.x, ob.y],
           [ob.x + ob.w, ob.y],
@@ -282,6 +278,7 @@ class Scene extends Component {
         ];
 
         let inRange = false;
+
         detect.forEach((dt) => {
           if (dt[0] > minX && dt[0] < maxX && dt[1] > minY && dt[1] < maxY) {
             inRange = true;
@@ -291,6 +288,8 @@ class Scene extends Component {
         if (inRange && ob?.zIndex > -1) {
           ob.selected = true;
           this.detectList.push(ob);
+
+          console.log(this.detectList);
         } else {
           ob.selected = false;
         }
@@ -310,9 +309,6 @@ class Scene extends Component {
   }
 }
 
-// init game base
-
-// GameObject for Game render
 class GameObject extends Component {
   x = 0;
   y = 0;
@@ -336,13 +332,13 @@ class GameObject extends Component {
   state = "active";
 
   constructor(name, x, y, w, h, id, r, s) {
-    super(name);
+    super(name, x, y, w, h, id, r, s);
+    this.name = name;
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
     this.id = id;
-    this.r = r;
     this.s = s;
   }
 
@@ -372,3 +368,7 @@ class GameObject extends Component {
     }
   }
 }
+
+class GameController extends Component {}
+
+// end
