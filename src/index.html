@@ -1,29 +1,26 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <script src="./engine/base.js"></script>
+    <script src="./engine/entity.js"></script>
+    <script src="./engine/lib.js"></script>
+  </head>
   <body style="width: 1000; height: 1000px"></body>
-  <script src="./engine/base.js"></script>
-  <script src="./engine/entity.js"></script>
-  <script src="./engine/lib.js"></script>
   <script>
-    const scene1 = new Scene("scene1");
-    const viewObject = new ViewObject(
-      "camera",
-      100,
-      100,
-      600,
-      400,
-      "ViewObject"
-    );
+    const scene1 = new Scene("scene1", 0, 0, 800, 500);
+    const viewObject = new ViewObject("camera", 50, 50, 600, 350, "ViewObject");
     const center = new Character("center", 200, 200, 40, 40, "game1");
     const base1 = new Character("bonke1", 180, 300, 30, 30, "game1");
     const base2 = new Character("bonke2", 100, 200, 30, 30, "game1");
 
+    viewObject.color = "gray";
     center.color = "black";
     base1.color = "red";
     base2.color = "red";
-    viewObject.color = "gray";
 
     scene1.addList([viewObject, center, base1, base2]);
+
+    setTimeout(() => scene1.render(), 500);
     scene1.render();
   </script>
 </html>

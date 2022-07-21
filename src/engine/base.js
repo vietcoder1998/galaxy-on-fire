@@ -4,21 +4,27 @@ class Component {
   stop = false;
   ctx;
 
-  constructor(name) {
+  constructor(name, x, y, w, h) {
     this.name = name;
-    this.init(this);
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.init();
   }
 
   // init() start on game
   async init(context, cb) {}
 
   // launch
-  launch() {
+  async launch() {
     try {
       if (this.g) {
         this.y += this.vector.y;
         this.vector.y += this.g / 60;
       }
+
+      // Clear
       // Action to render
       this.beforeDraw(this);
       this.loop(this);
@@ -31,10 +37,39 @@ class Component {
     }
   }
 
-  // Action life cycle
-  beforeDraw(context) {}
-  loop(context) {}
-  draw(context, cb) {}
+  // before life cycle
+  async beforeDraw(context) {}
+
+  // action in loop range
+  async loop(context) {}
+
+  // action in draw
+  async draw(context, cb) {
+    if (this.ctx && !this.stop) {
+      if (this.dImage && this.dImage.src && this.imgs.length > 0) {
+        this.ctx.drawImage(this.dImage.src, init.x);
+      } else {
+        // fill color for background
+        this.ctx.fillStyle = this.color;
+
+        // fill rects
+        this.ctx.fillRect(this.x, this.y, this.w, this.h);
+
+        if (this.selected) {
+          drawSelected(this.ctx, this.x, this.y, this.w, this.h);
+        }
+
+        if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
+          this.dImage = this.imgs[0];
+        } else {
+          this.imgFrame += 1;
+          this.dImage = this.imgs[this.imgFrame];
+        }
+      }
+    }
+  }
+
+  // action in after draw
   afterDraw(context) {}
 
   // behavior
@@ -43,15 +78,17 @@ class Component {
   onKeyPress(e, cb) {}
   onMouseUp(e, cb) {}
 
-  // clear view
-  clear() {
+  // clear
+  clear(context) {
     this.ctx.clearRect(this.x, this.y, this.w, this.h);
   }
 }
 
 class Scene extends Component {
-  w;
-  h;
+  w = 0;
+  h = 0;
+  x = 0;
+  y = 0;
   name;
   fps = 60;
   frame = 0;
@@ -64,13 +101,25 @@ class Scene extends Component {
   lastClick = { x: 0, y: 0 };
   detectList = [];
 
-  constructor(name, fps) {
-    super(name);
+  constructor(name, x, y, w, h, fps) {
+    super(name, x, y, w, h);
     this.fps = fps ?? 60;
   }
 
   // init
   init(context) {
+    // init canvas
+    console.log("run init");
+
+    this.mouse = new MouseObject(0, 0, 0, 0, "mouse", "mouse", 0);
+    const canvas = document.createElement("canvas");
+
+    canvas.id = this.name;
+    canvas.width = this.w;
+    canvas.height = this.h;
+    canvas.style.top = this.x + "px";
+    canvas.style.left = this.y + "px";
+
     const body =
       document.querySelector("body") ?? document.createElement("body");
 
@@ -78,17 +127,11 @@ class Scene extends Component {
       document.append(body);
     }
 
-    console.log(this);
+    body.append(canvas);
 
-    this.mouse = new MouseObject(0, 0, 0, 0, "mouse", "mouse", 0);
-
-    this.canvas = document.createElement("canvas");
-    this.canvas.id = this.name;
-    this.canvas.width = this.w ?? 1000;
-    this.canvas.height = this.h ?? 1000;
-    this.canvas.style.top = this.x + "px";
-    this.canvas.style.left = this.y + "px";
-    this.ctx = this.canvas.getContext("2d");
+    // init detail for canvas
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d");
     this.mouse.ctx = this.ctx;
 
     // listen event
@@ -118,7 +161,6 @@ class Scene extends Component {
 
       this.obList?.forEach((ob) => ob?.onKeyPress({ ...e, x, y }));
     };
-
     this.canvas.onmouseup = (e) => {
       const x = e.clientX - this.x;
       const y = e.clientY - this.y;
@@ -126,7 +168,6 @@ class Scene extends Component {
       this.obList?.forEach((ob) => ob?.onMouseUp({ ...e, x, y }));
     };
 
-    body.appendChild(this.canvas);
     // calculator time
     this.timeMachine = setInterval(() => (this.time += 1), 1000);
   }
@@ -156,9 +197,13 @@ class Scene extends Component {
 
   render(callback) {
     try {
+      // render view
       if (!this.stop) {
+        console.log(this.x, this.y, this.w, this.h);
+
+        // clear
         this.action = setInterval(() => {
-          // clear view
+          // clear object
           this.clear();
 
           // render object list
@@ -169,17 +214,32 @@ class Scene extends Component {
           }
 
           // render mouse
-          this.mouse.draw();
+          this.mouse.launch();
         }, 1000 / this.fps);
       } else {
         console.log("____GAME STOP____");
       }
     } catch (error) {
-      setTimeout(() => {
-        clearInterval(this.action);
-      }, time * 1000);
+      clearInterval(this.action);
+
+      console.log("error", error);
       throw error;
     }
+  }
+
+  loop(callback) {
+    // frame and write context
+    if (this.frame < this.fps) {
+      this.frame += 1;
+    } else {
+      this.frame = 0;
+    }
+
+    this.ctx.font = 20;
+    this.ctx.fillStyle = "black";
+    // fill frame
+    this.ctx.fillText("frame:" + this.frame, 400, 10);
+    this.ctx.fillText("fps:" + this.fps, 400, 20);
   }
 
   onMouseDown(e) {
@@ -243,18 +303,14 @@ class Scene extends Component {
       }
     }
   }
+
+  // clear view
+  clear() {
+    this.ctx.clearRect(this.x, this.y, this.w, this.h);
+  }
 }
 
 // init game base
-class GameController extends Component {
-  constructor() {
-    super();
-    this.init(this);
-  }
-
-  // init
-  async init(context) {}
-}
 
 // GameObject for Game render
 class GameObject extends Component {
@@ -280,7 +336,7 @@ class GameObject extends Component {
   state = "active";
 
   constructor(name, x, y, w, h, id, r, s) {
-    super(name)
+    super(name);
     this.x = x;
     this.y = y;
     this.w = w;
@@ -296,9 +352,6 @@ class GameObject extends Component {
       if (this.dImage && this.dImage.src && this.imgs.length > 0) {
         this.ctx.drawImage(this.dImage.src, init.x);
       } else {
-        // clear
-        this.clear();
-
         // fill color for background
         this.ctx.fillStyle = this.color;
 
