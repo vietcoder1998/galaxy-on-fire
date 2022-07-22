@@ -20,16 +20,8 @@ class Behavior {
     this.init();
   }
 
-  init() {
-    // canvas
-    this.canvas.onmousemove = (e) => this.onMouseMove(e);
-    this.canvas.onmouseup = (e) => this.onMouseUp(e);
-    this.canvas.onmousedown = (e) => this.onMouseDown(e);
-    this.canvas.onkeydown = (e) => this.onKeyDown(e);
-    this.canvas.onkeyup = (e) => this.onKeyUp(e);
-  }
+  init() {}
 }
-
 class Component extends Behavior {
   x;
   y;
@@ -42,6 +34,7 @@ class Component extends Behavior {
   instance;
   dImage;
   imgs = [];
+  obList = [];
 
   get _instance() {
     return this.instance;
@@ -61,20 +54,23 @@ class Component extends Behavior {
   // launch
   launch() {
     try {
-      if (this.g) {
-        this.y += this.vector.y;
-        this.vector.y += this.g / 60;
+      if (!this.stop) {
+        if (this.g) {
+          this.y += this.vector.y;
+          this.vector.y += this.g / 60;
+        }
+
+        // Clear
+        this.beforeDraw(this);
+        this.loop(this);
+        this.draw(this);
+        this.afterDraw(this);
       }
 
-      // Clear
-      // Action to render
-      this.beforeDraw(this);
-      this.loop(this);
-      this.draw(this);
-      this.afterDraw(this);
       // End
     } catch (error) {
-      alert("error: ", error);
+      console.log("error: ", error);
+      this.stop = true;
       throw error;
     }
   }
@@ -87,26 +83,24 @@ class Component extends Behavior {
 
   // action in draw
   draw(context, cb) {
-    if (this.ctx && !this.stop) {
-      if (this.dImage && this.dImage.src && this.imgs.length > 0) {
-        this.ctx.drawImage(this.dImage.src, init.x);
+    if (this.dImage && this.dImage.src && this.imgs.length > 0) {
+      this.ctx.drawImage(this.dImage.src, init.x);
+    } else {
+      // fill color for background
+      this.ctx.fillStyle = this.color;
+
+      // fill rects
+      this.ctx.fillRect(this.x, this.y, this.w, this.h);
+
+      if (this.selected) {
+        drawSelected(this.ctx, this.x, this.y, this.w, this.h);
+      }
+
+      if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
+        this.dImage = this.imgs[0];
       } else {
-        // fill color for background
-        this.ctx.fillStyle = this.color;
-
-        // fill rects
-        this.ctx.fillRect(this.x, this.y, this.w, this.h);
-
-        if (this.selected) {
-          drawSelected(this.ctx, this.x, this.y, this.w, this.h);
-        }
-
-        if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
-          this.dImage = this.imgs[0];
-        } else {
-          this.imgFrame += 1;
-          this.dImage = this.imgs[this.imgFrame];
-        }
+        this.imgFrame += 1;
+        this.dImage = this.imgs[this.imgFrame];
       }
     }
   }
@@ -119,17 +113,18 @@ class Component extends Behavior {
     this.ctx.clearRect(this.x, this.y, this.w, this.h);
   }
 }
-
 class Scene extends Component {
   fps = 60;
   frame = 0;
+  timeMachine = 0;
   stop = false;
-  obList = [new MouseObject(0, 0, 0, 0, "mouse", "mouse", 0)];
+  obList = [new MouseObject("mouse", 0, 0, 0, 0, "mouse1", 0)];
   action;
   selector = {};
   zIndex = 0;
   lastClick = { x: 0, y: 0 };
   detectList = [];
+  time = 0;
 
   constructor(name, x, y, w, h, id, s) {
     super(name, x, y, w, h, id, s);
@@ -148,11 +143,43 @@ class Scene extends Component {
     this.canvas.height = this.h;
     this.canvas.style.top = this.x + "px";
     this.canvas.style.left = this.y + "px";
-    this.timeMachine = setInterval(() => (this.time += 1), 1000);
   }
 
   // init
-  init() {}
+  init() {
+    // canvas
+    this.canvas.onmousemove = (e) => {
+      this.obList.forEach((ob) => {
+        ob.onMouseMove(e);
+      });
+      this.onMouseMove(e);
+    };
+    this.canvas.onmouseup = (e) => {
+      this.obList.forEach((ob) => {
+        ob.onMouseUp(e);
+      });
+      this.onMouseUp(e);
+    };
+    this.canvas.onmousedown = (e) => {
+      this.obList.forEach((ob) => {
+        ob.onMouseDown(e);
+      });
+      this.onMouseDown(e);
+    };
+    this.canvas.onkeydown = (e) => {
+      this.obList.forEach((ob) => {
+        ob.onKeyDown(e);
+      });
+      this.onMouseUp(e);
+    };
+    this.canvas.onkeyup = (e) => {
+      this.obList.forEach((ob) => {
+        ob.onkeydown(e);
+      });
+
+      this.onKeyUp(e);
+    };
+  }
 
   // add game object
   add(ob, name) {
@@ -161,8 +188,6 @@ class Scene extends Component {
       root: { x: this.x, y: this.y },
     });
     this.obList.unshift(ob);
-
-    console.log(this.obList)
   }
 
   // add multiple game object
@@ -180,8 +205,9 @@ class Scene extends Component {
       if (!this.stop && this.ctx) {
         // clear rect
         this.action = setInterval(() => {
-          this.ctx.clearRect(this.x, this.y, this.w, this.h);
-          this.obList.map((item) => item.launch());
+          this.clear();
+          this.obList?.map((item) => item?.launch());
+          this.info();
         }, 1000 / this.fps);
       } else {
         if (!this.ctx) {
@@ -198,55 +224,33 @@ class Scene extends Component {
     }
   }
 
-  loop(callback) {
+  info(callback) {
     // frame and write context
     if (this.frame < this.fps) {
       this.frame += 1;
     } else {
       this.frame = 0;
+      this.time += 1;
     }
+    this.timeMachine = new Date().toLocaleDateString();
 
     this.ctx.font = 20;
     this.ctx.fillStyle = "black";
+
     // fill frame
-    this.ctx.fillText("frame:" + this.frame, 400, 10);
-    this.ctx.fillText("fps:" + this.fps, 400, 20);
-  }
-
-  onMouseDown(e) {
-    const x = e.clientX;
-    const y = e.clientY;
-
-    this.detectList = [];
-    this.obList?.forEach((ob) => {
-      const inX = ob?.x < x && x < ob?.x + ob?.w;
-      const inY = ob?.y < y && y < ob?.y + ob?.h;
-
-      if (inX && inY && ob?.zIndex > -1) {
-        ob.selected = true;
-
-        console.log(ob);
-        this.detectList.push(ob);
-      } else {
-        ob.selected = false;
-      }
-    });
-
-    if (this.detectList && this.detectList.length > 0) {
-      this.detectList.forEach((item) => {
-        item.selected = true;
-      });
-    }
+    this.ctx.fillText("frame:" + this.frame, this.w - 100, 20);
+    this.ctx.fillText("fps:" + this.fps, this.w - 100, 40);
+    this.ctx.fillText("time: " + this.time, this.w - 100, 60);
+    this.ctx.fillText("date: " + this.timeMachine, this.w - 100, 80);
   }
 
   onMouseMove(e) {
-    const { x, y, w, h, selected, stop } = this.mouse;
+    const { x, y, w, h, down } = this.obList.at(-1);
     this.detectList = [];
-
     // detect event in mouse change
 
-    if (selected && !stop) {
-      this.obList?.forEach((ob) => {
+    if (down) {
+      this.obList?.slice(0, -1).forEach((ob) => {
         const tX = x + w;
         const tY = y + h;
 
@@ -274,8 +278,6 @@ class Scene extends Component {
         if (inRange && ob?.zIndex > -1) {
           ob.selected = true;
           this.detectList.push(ob);
-
-          console.log(this.detectList);
         } else {
           ob.selected = false;
         }
@@ -287,11 +289,6 @@ class Scene extends Component {
         });
       }
     }
-  }
-
-  // clear view
-  clear() {
-    this.ctx.clearRect(this.x, this.y, this.w, this.h);
   }
 }
 class GameObject extends Component {
@@ -315,49 +312,29 @@ class GameObject extends Component {
   };
   imgFrame = 0;
   state = "active";
+  selected = false;
+  zIndex = 1;
+  type = "gameob";
 
   constructor(name, x, y, w, h, id, r, s) {
     super(name, x, y, w, h, id, r, s);
     this.name = name;
+    this.id = id;
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
-    this.id = id;
     this.s = s;
   }
 
   // add context to drive
-  draw(context) {
-    if (this.ctx && !this.stop) {
-      if (this.dImage && this.dImage.src && this.imgs.length > 0) {
-        this.ctx.drawImage(this.dImage.src, init.x);
-      } else {
-        // fill color for background
-        this.ctx.fillStyle = this.color;
-
-        // fill rects
-        this.ctx.fillRect(this.x, this.y, this.w, this.h);
-
-        if (this.selected) {
-          drawSelected(this.ctx, this.x, this.y, this.w, this.h);
-        }
-
-        if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
-          this.dImage = this.imgs[0];
-        } else {
-          this.imgFrame += 1;
-          this.dImage = this.imgs[this.imgFrame];
-        }
-      }
-    }
-  }
 }
 
 class MouseObject extends Component {
   zIndex = 999;
   selected = false;
   down = false;
+  type = "mouse";
 
   constructor(name, x, y, w, h, id, s) {
     super(name, x, y, w, h, id, s);
@@ -373,13 +350,10 @@ class MouseObject extends Component {
   onMouseDown(e) {
     this.x = e.clientX;
     this.y = e.clientY;
-
     this.w = 0;
     this.h = 0;
 
-    this.selected = true;
     this.down = true;
-    this.stop = true;
   }
 
   onMouseMove(e) {
@@ -387,41 +361,28 @@ class MouseObject extends Component {
       this.w = e.clientX - this.x;
       this.h = e.clientY - this.y;
     }
-
-    this.stop = false;
   }
 
   onMouseUp(e) {
-    this.x = 0;
-    this.y = 0;
     this.w = 0;
     this.h = 0;
 
-    this.selected = false;
-    this.stop = false;
     this.down = false;
   }
 
   draw(context) {
-    if (this.ctx && this.selected) {
-      if (this.dImage && this.dImage.src && this.imgs.length > 0) {
-        this.ctx.drawImage(this.dImage.src, this.dImage.x, this.dImage.y);
-      } else {
-        if (this.stop) {
-          drawX(this.ctx, this.x - 10, this.y - 10, 10, 3);
-        } else {
-          drawRawSelected(this.ctx, this.x, this.y, this.w, this.h);
+    if (!this.down) {
+      drawX(this.ctx, this.x - 10, this.y - 10, 10, 3);
+    } else {
+      drawRawSelected(this.ctx, this.x, this.y, this.w, this.h);
 
-          if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
-            this.dImage = this.imgs[0];
-          } else {
-            this.imgFrame += 1;
-            this.dImage = this.imgs[this.imgFrame];
-          }
-        }
+      if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
+        this.dImage = this.imgs[0];
+      } else {
+        this.imgFrame += 1;
+        this.dImage = this.imgs[this.imgFrame];
       }
     }
   }
 }
-
 class GameController extends Component {}

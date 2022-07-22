@@ -1,12 +1,14 @@
 class Sprite extends GameObject {
-  x;
-  y;
-  w;
-  h;
+  x = 0;
+  y = 0;
+  w = 0;
+  h = 0;
   type = "character";
   color = "black";
   zIndex = 0;
   speed = 0.1;
+  type = "sprite";
+  selected = false;
 
   constructor(name, x, y, w, h, id, s) {
     super(name, x, y, w, h, id, s);
@@ -19,12 +21,21 @@ class Sprite extends GameObject {
     this.s = s;
   }
 
-  async onMouseDown() {
-    console.log('mouse in game', this.name)
+  onMouseDown(e) {
+    if (
+      this.x < e.clientX &&
+      this.x + this.w > e.clientX &&
+      this.y < e.clientY &&
+      this.y + this.h > e.clientY &&
+      this.type === "sprite"
+    ) {
+      this.selected = true;
+      console.log("selected", this.name);
+    }
   }
 }
 
-class ViewObject extends GameObject {
+class Camera extends GameObject {
   x;
   y;
   w;
@@ -32,6 +43,7 @@ class ViewObject extends GameObject {
   type = "map";
   color = "gray";
   zIndex = -999;
+  type = "camera";
 
   constructor(name, x, y, w, h, id, s) {
     super(name, x, y, w, h, id, s);
@@ -45,7 +57,7 @@ class ViewObject extends GameObject {
   }
 }
 
-class TileObject extends GameObject {
+class Tile extends GameObject {
   x;
   y;
   w;
@@ -71,6 +83,6 @@ class TileObject extends GameObject {
   }
 }
 
-class TitleMapObject extends GameObject {
+class TitleMap extends GameObject {
   matrix = [];
 }

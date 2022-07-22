@@ -1,4 +1,6 @@
 class Tank extends Sprite {
+  type = "sprite";
+
   constructor(name, x, y, w, h, id, s) {
     super(name, x, y, w, h, id, s);
     this.name = name;
@@ -10,20 +12,15 @@ class Tank extends Sprite {
     this.id = id;
   }
 
-  /**
-   * @param {MouseEvent} e
-   * @return {void}
-   */
-
-  async onMouseDown(e) {
-    if (this.selected) {
-      drawDashedLine(
-        this.ctx,
-        this.x + this.w / 2,
-        this.y + this.h / 2,
-        e.clientX,
-        e.clientY
-      );
-    }
-  }
+  // loop(e) {
+  //   if (this.selected) {
+  //     drawDashedLine(
+  //       this.ctx,
+  //       this.x + this.w / 2,
+  //       this.y + this.h / 2,
+  //       e.clientX,
+  //       e.clientY
+  //     );
+  //   }
+  // }
 }
