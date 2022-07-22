@@ -12,6 +12,20 @@ function drawSelected(ctx, x, y, w, h) {
   ctx.stroke();
 }
 
+function drawSquare(ctx, x, y, w, h, color) {
+  ctx.restore();
+
+  ctx.beginPath();
+  ctx.lineWidth = 1;
+  ctx.moveTo(x, y);
+  ctx.lineTo(x, y + h);
+  ctx.lineTo(x + w, y + h);
+  ctx.lineTo(x + w, y);
+  ctx.lineTo(x, y);
+  ctx.strokeStyle = color ?? "#4eff00";
+  ctx.stroke();
+}
+
 function drawRawSelected(ctx, x, y, w, h) {
   ctx.restore();
 

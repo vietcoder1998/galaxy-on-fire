@@ -60,25 +60,101 @@ class Tile extends GameObject {
   y;
   w;
   h;
-  draw(context) {
-    if (this.ctx && !this.stop && this.selected) {
-      if (this.dImage && this.dImage.src && this.imgs.length > 0) {
-        this.ctx.drawImage(this.dImage.src, init.x);
-      } else {
-        // clear
-        drawRawSelected(this.ctx, this.x, this.y, this.w, this.h);
+  selected = true;
+  zIndex = 1;
 
-        if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
-          this.dImage = this.imgs[0];
-        } else {
-          this.imgFrame += 1;
-          this.dImage = this.imgs[this.imgFrame];
-        }
+  constructor(name, x, y, w, h, id, r, s) {
+    super(name, x, y, w, h, id, r, s);
+    this.name = name;
+    this.id = id;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.s = s;
+  }
+
+  draw() {
+    if (this.dImage && this.dImage.src && this.imgs.length > 0) {
+      this.ctx.drawImage(this.dImage.src, init.x);
+    } else {
+      // fill rects
+      if (this.selected) {
+        drawSquare(this.ctx, this.x, this.y, this.w, this.h, "#4D118220");
+      }
+
+      if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
+        this.dImage = this.imgs[0];
+      } else {
+        this.imgFrame += 1;
+        this.dImage = this.imgs[this.imgFrame];
       }
     }
   }
 }
 
 class TitleMap extends GameObject {
-  matrix = [];
+  column = 10;
+  row = 10;
+  tiles = [];
+
+  constructor(name, x, y, w, h, id, r, s) {
+    super(name, x, y, w, h, id, r, s);
+    this.name = name;
+    this.id = id;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.s = s;
+
+    const column = 12;
+    const row = 8;
+    const tiles = [];
+    const wTile = Math.abs(this.w - this.x) / column;
+    const hTile = Math.abs(this.h - this.y) / row;
+
+    for (let i = 0; i < row; i++) {
+      const tileRow = [];
+
+      const y = this.y + i * hTile;
+
+      for (let j = 0; j < column;  j++) {
+        const x = this.x + j * hTile;
+
+        const tile = new Tile(`tile_${i + "_" + j}`, x, y, wTile, hTile);
+
+        tileRow.push(tile);
+      }
+
+      tiles.push(tileRow);
+    }
+
+    this.tiles = tiles;
+    console.log(this.tiles);
+  }
+
+  draw() {
+    if (this.dImage && this.dImage.src && this.imgs.length > 0) {
+      this.ctx.drawImage(this.dImage.src, init.x);
+    } else {
+      // fill rects
+      this.ctx.fillRect(this.x, this.y, this.w, this.h, "green");
+
+      if (this.tiles && this.tiles.length > 0) {
+        this.tiles.forEach((tileRow) => {
+          tileRow.forEach((tile) => {
+            tile.launch();
+          });
+        });
+      }
+
+      if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
+        this.dImage = this.imgs[0];
+      } else {
+        this.imgFrame += 1;
+        this.dImage = this.imgs[this.imgFrame];
+      }
+    }
+  }
 }
