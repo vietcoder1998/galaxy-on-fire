@@ -5,12 +5,14 @@ const { createClient } = require("redis");
 const path = require("path");
 const { app, BrowserWindow } = require("electron");
 
-const eApp = app
+const eApp = app;
 function createWindow() {
   const win = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
       preload: path.join(__dirname, "preload.js"),
     },
   });

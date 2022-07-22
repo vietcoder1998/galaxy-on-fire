@@ -1,28 +1,9 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <script src="./engine/lib.js"></script>
-    <script src="./engine/base.js"></script>
-    <script src="./engine/entity.js"></script>
-  </head>
   <canvas id="defaultGame"></canvas>
-  <script>
-    const scene1 = new Scene("scene1", 0, 0, 800, 500, "test_id", 1000);
-    // scene
-    const viewObject = new ViewObject("camera", 50, 50, 600, 350, "Camera");
-    const center = new Tank("center", 200, 200, 40, 40, "game1");
-    const base1 = new Tank("boongke_1", 180, 300, 30, 30, "game2");
-    const base2 = new Tank("boongke_2", 100, 200, 30, 30, "game3");
-
-    console.log(scene1)
-
-    viewObject.color = "gray";
-    center.color = "black";
-    base1.color = "red";
-    base2.color = "red";
-
-    console.log(scene1.mouse);
-    scene1.addList([viewObject, center, base1, base2]);
-    scene1.render();
-  </script>
+  <script src="./lib.js"></script>
+  <script src="./base.js"></script>
+  <script src="./entity.js"></script>
+  <script src="./Tank.js"></script>
+  <script src="./game.js"></script>
 </html>

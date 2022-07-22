@@ -1,4 +1,4 @@
-class Character extends GameObject {
+class Sprite extends GameObject {
   x;
   y;
   w;
@@ -17,6 +17,10 @@ class Character extends GameObject {
     this.w = w;
     this.h = h;
     this.s = s;
+  }
+
+  async onMouseDown() {
+    console.log('mouse in game', this.name)
   }
 }
 
@@ -69,35 +73,4 @@ class TileObject extends GameObject {
 
 class TitleMapObject extends GameObject {
   matrix = [];
-}
-
-// extends character
-class Tank extends GameObject {
-  constructor(name, x, y, w, h, id, s) {
-    super(name, x, y, w, h, id, s);
-    this.name = name;
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.s = s;
-    this.id = id;
-  }
-
-  /**
-   * @param {MouseEvent} e
-   * @return {void}
-   */
-
-  async onMouseDown(e) {
-
-    console.log('e ->', this)
-    drawDashedLine(
-      this.ctx,
-      this.x + this.w / 2,
-      this.y + this.h / 2,
-      e.clientX,
-      e.clientY
-    );
-  }
 }

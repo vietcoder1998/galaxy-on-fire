@@ -1,26 +1,33 @@
+///
 class Behavior {
   /**
    * @param {MouseEvent} e
    * @return {void}
    */
 
+  onMouseDown(e) {}
+  onMouseMove(e) {}
+  onKeyDown(e) {}
+  onKeyUp(e) {}
+  onMouseUp(e) {}
+  init(e) {}
+
+  obList = [];
+
   constructor() {
-    try {
-      document.onmousemove = async (e) => await this.onMouseMove(e);
-      document.onmouseup = async (e) => await this.onMouseUp(e);
-      document.onmousedown = async (e) => await this.onMouseDown(e);
-      document.onkeydown = async (e) => await this.onKeyDown(e);
-      document.onkeyup = async (e) => await this.onKeyUp(e);
-    } catch (error) {
-      console.log("error in behavior", error);
-    }
+    this.canvas = document.querySelector("canvas#defaultGame");
+    this.ctx = this.canvas.getContext("2d");
+    this.init();
   }
 
-  async onMouseDown(e) {}
-  async onMouseMove(e) {}
-  async onKeyDown(e) {}
-  async onKeyUp(e) {}
-  async onMouseUp(e) {}
+  init() {
+    // canvas
+    this.canvas.onmousemove = (e) => this.onMouseMove(e);
+    this.canvas.onmouseup = (e) => this.onMouseUp(e);
+    this.canvas.onmousedown = (e) => this.onMouseDown(e);
+    this.canvas.onkeydown = (e) => this.onKeyDown(e);
+    this.canvas.onkeyup = (e) => this.onKeyUp(e);
+  }
 }
 
 class Component extends Behavior {
@@ -31,8 +38,14 @@ class Component extends Behavior {
   id;
   name;
   stop;
-  ctx;
   selected;
+  instance;
+  dImage;
+  imgs = [];
+
+  get _instance() {
+    return this.instance;
+  }
 
   constructor(name, x, y, w, h, id, s) {
     super();
@@ -43,17 +56,10 @@ class Component extends Behavior {
     this.h = h;
     this.id = id;
     this.s = s;
-
-    // listen event
-
-    this.init();
   }
 
-  // init() start on game
-  async init(context, cb) {}
-
   // launch
-  async launch() {
+  launch() {
     try {
       if (this.g) {
         this.y += this.vector.y;
@@ -74,13 +80,13 @@ class Component extends Behavior {
   }
 
   // before life cycle
-  async beforeDraw(context) {}
+  beforeDraw(context) {}
 
   // action in loop range
-  async loop(context) {}
+  loop(context) {}
 
   // action in draw
-  async draw(context, cb) {
+  draw(context, cb) {
     if (this.ctx && !this.stop) {
       if (this.dImage && this.dImage.src && this.imgs.length > 0) {
         this.ctx.drawImage(this.dImage.src, init.x);
@@ -114,89 +120,16 @@ class Component extends Behavior {
   }
 }
 
-class MouseObject extends Component {
-  zIndex = 999;
-  selected = false;
-  down = false;
-
-  constructor(name, x, y, w, h, id, s) {
-    super(name, x, y, w, h, id, s);
-    this.name = name;
-    this.id = id;
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.s = s;
-  }
-
-  async onMouseDown(e) {
-    console.log("mouse listen", e);
-    this.x = e.clientX;
-    this.y = e.clientY;
-
-    this.w = 0;
-    this.h = 0;
-
-    this.selected = true;
-    this.down = true;
-    this.stop = true;
-  }
-
-  async onMouseMove(e) {
-    this.w = e.clientX - this.x;
-    this.h = e.clientX - this.y;
-    this.x = e.clientX;
-    this.y = e.clientY;
-
-    this.stop = false;
-  }
-
-  async onMouseUp(e) {
-    this.x = 0;
-    this.y = 0;
-    this.w = 0;
-    this.h = 0;
-    this.selected = false;
-    this.stop = false;
-    this.down = false;
-  }
-
-  async draw(context) {
-    if (this.ctx && this.selected) {
-      if (this.dImage && this.dImage.src && this.imgs.length > 0) {
-        this.ctx.drawImage(this.dImage.src, this.dImage.x, this.dImage.y);
-      } else {
-        if (this.stop) {
-          drawX(this.ctx, this.x - 10, this.y - 10, 10, 3);
-        } else {
-          drawRawSelected(this.ctx, this.x, this.y, this.w, this.h);
-
-          if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
-            this.dImage = this.imgs[0];
-          } else {
-            this.imgFrame += 1;
-            this.dImage = this.imgs[this.imgFrame];
-          }
-        }
-      }
-    }
-  }
-}
-
-// base component
 class Scene extends Component {
   fps = 60;
   frame = 0;
-  canvas;
   stop = false;
-  obList = [];
+  obList = [new MouseObject(0, 0, 0, 0, "mouse", "mouse", 0)];
   action;
   selector = {};
   zIndex = 0;
   lastClick = { x: 0, y: 0 };
   detectList = [];
-  mouse;
 
   constructor(name, x, y, w, h, id, s) {
     super(name, x, y, w, h, id, s);
@@ -207,71 +140,48 @@ class Scene extends Component {
     this.h = h;
     this.id = id;
     this.s = s;
-
-    this.start();
   }
 
-  // init
   start() {
     // init canvas
-    const canvas = document.querySelector("canvas#defaultGame");
-    const ctx = canvas.getContext("2d");
-    canvas.id = this.name;
-    canvas.width = this.w;
-    canvas.height = this.h;
-    canvas.style.top = this.x + "px";
-    canvas.style.left = this.y + "px";
-
-    // map canvas
-    this.canvas = canvas;
-    this.ctx = ctx;
-    this.mouse = new MouseObject(0, 0, 0, 0, "mouse", "mouse", 0);
-    this.mouse.ctx = ctx;
+    this.canvas.width = this.w;
+    this.canvas.height = this.h;
+    this.canvas.style.top = this.x + "px";
+    this.canvas.style.left = this.y + "px";
     this.timeMachine = setInterval(() => (this.time += 1), 1000);
   }
 
-  // add game object
-  add(ob, isHead) {
-    if (ob) {
-      Object.assign(ob, {
-        ctx: this.ctx,
-        parentId: this.id,
-        root: { x: this.x, y: this.y },
-      });
+  // init
+  init() {}
 
-      if (isHead) {
-        this.obList.unshift(ob);
-      }
-      this.obList.push(ob);
-    }
+  // add game object
+  add(ob, name) {
+    Object.assign(ob, {
+      parentId: this.id,
+      root: { x: this.x, y: this.y },
+    });
+    this.obList.unshift(ob);
+
+    console.log(this.obList)
   }
 
   // add multiple game object
-  addList(obs) {
-    if (obs && obs.length > 0) {
-      obs.forEach((ob) => this.add(ob));
+  addList(...args) {
+    if (args && args.length > 0) {
+      args.forEach((ob) => this.add(ob));
     }
   }
 
   // render ( only scene render)
   render(callback) {
+    this.start();
     try {
       // render view
       if (!this.stop && this.ctx) {
         // clear rect
         this.action = setInterval(() => {
-          // clear object
           this.ctx.clearRect(this.x, this.y, this.w, this.h);
-
-          // render object list
-          if (this.obList.length > 0) {
-            this?.obList?.forEach((item) => {
-              item.launch();
-            });
-          }
-
-          // render mouse
-          this.mouse.launch();
+          this.obList.map((item) => item.launch());
         }, 1000 / this.fps);
       } else {
         if (!this.ctx) {
@@ -283,7 +193,7 @@ class Scene extends Component {
     } catch (error) {
       clearInterval(this.action);
 
-      ole.log("error", error);
+      console.log("error", error);
       throw error;
     }
   }
@@ -303,8 +213,33 @@ class Scene extends Component {
     this.ctx.fillText("fps:" + this.fps, 400, 20);
   }
 
-  async onMouseMove(e) {
-    console.log("scene mouse event", e);
+  onMouseDown(e) {
+    const x = e.clientX;
+    const y = e.clientY;
+
+    this.detectList = [];
+    this.obList?.forEach((ob) => {
+      const inX = ob?.x < x && x < ob?.x + ob?.w;
+      const inY = ob?.y < y && y < ob?.y + ob?.h;
+
+      if (inX && inY && ob?.zIndex > -1) {
+        ob.selected = true;
+
+        console.log(ob);
+        this.detectList.push(ob);
+      } else {
+        ob.selected = false;
+      }
+    });
+
+    if (this.detectList && this.detectList.length > 0) {
+      this.detectList.forEach((item) => {
+        item.selected = true;
+      });
+    }
+  }
+
+  onMouseMove(e) {
     const { x, y, w, h, selected, stop } = this.mouse;
     this.detectList = [];
 
@@ -351,32 +286,6 @@ class Scene extends Component {
           item.selected = true;
         });
       }
-    }
-  }
-
-  async onMouseDown(e) {
-    console.log("mouse down", e);
-    const [x, y] = [e.clientX, e.clientY];
-
-    this.detectList = [];
-    this.obList?.forEach((ob) => {
-      const inX = ob?.x < x && x < ob?.x + ob?.w;
-      const inY = ob?.y < y && y < ob?.y + ob?.h;
-
-      if (inX && inY && ob?.zIndex > -1) {
-        ob.selected = true;
-
-        console.log(ob);
-        this.detectList.push(ob);
-      } else {
-        ob.selected = false;
-      }
-    });
-
-    if (this.detectList && this.detectList.length > 0) {
-      this.detectList.forEach((item) => {
-        item.selected = true;
-      });
     }
   }
 
@@ -439,6 +348,76 @@ class GameObject extends Component {
         } else {
           this.imgFrame += 1;
           this.dImage = this.imgs[this.imgFrame];
+        }
+      }
+    }
+  }
+}
+
+class MouseObject extends Component {
+  zIndex = 999;
+  selected = false;
+  down = false;
+
+  constructor(name, x, y, w, h, id, s) {
+    super(name, x, y, w, h, id, s);
+    this.name = name;
+    this.id = id;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.s = s;
+  }
+
+  onMouseDown(e) {
+    this.x = e.clientX;
+    this.y = e.clientY;
+
+    this.w = 0;
+    this.h = 0;
+
+    this.selected = true;
+    this.down = true;
+    this.stop = true;
+  }
+
+  onMouseMove(e) {
+    if (this.down) {
+      this.w = e.clientX - this.x;
+      this.h = e.clientY - this.y;
+    }
+
+    this.stop = false;
+  }
+
+  onMouseUp(e) {
+    this.x = 0;
+    this.y = 0;
+    this.w = 0;
+    this.h = 0;
+
+    this.selected = false;
+    this.stop = false;
+    this.down = false;
+  }
+
+  draw(context) {
+    if (this.ctx && this.selected) {
+      if (this.dImage && this.dImage.src && this.imgs.length > 0) {
+        this.ctx.drawImage(this.dImage.src, this.dImage.x, this.dImage.y);
+      } else {
+        if (this.stop) {
+          drawX(this.ctx, this.x - 10, this.y - 10, 10, 3);
+        } else {
+          drawRawSelected(this.ctx, this.x, this.y, this.w, this.h);
+
+          if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
+            this.dImage = this.imgs[0];
+          } else {
+            this.imgFrame += 1;
+            this.dImage = this.imgs[this.imgFrame];
+          }
         }
       }
     }
