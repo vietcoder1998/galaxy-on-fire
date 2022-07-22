@@ -33,10 +33,6 @@ class Component extends Behavior {
     x: 0,
     y: 0,
   };
-  endPoint = {
-    x: this.x,
-    y: this.y,
-  };
   name;
   stop;
   selected;
@@ -126,28 +122,6 @@ class Component extends Behavior {
         this.loop(this);
         this.draw(this);
         this.afterDraw(this);
-
-        if (
-          this._pos.x === this.endPoint.x ||
-          this._pos.y === this.endPoint.y
-        ) {
-          this.vector = {
-            x: 0,
-            y: 0,
-          };
-        }
-
-        // call direction
-        if (this.g && this.vector) {
-          this.y += this.vector.y;
-          this.vector.y += this.g / 60;
-        }
-
-        if (this.vector && this.speed) {
-          // moving with vector
-          this.x += this.vector.x * this.speed;
-          this.y += this.vector.y * this.speed;
-        }
       }
 
       // End
@@ -254,6 +228,7 @@ class Scene extends Component {
   }
 }
 
+// Controller
 class GameController extends Component {
   obList = [new MouseObject("mouse", 0, 0, 0, 0, "mouse1", 0)];
 
@@ -322,85 +297,6 @@ class GameController extends Component {
       args.forEach((ob) => this.add(ob));
     }
   }
-
-  onMouseMove(e) {
-    const { x, y, w, h, down } = this.obList.at(-1);
-
-    if (down) {
-      this.obList?.slice(0, -1).forEach((ob) => {
-        const tX = x + w;
-        const tY = y + h;
-
-        const minX = tX > x ? x : tX;
-        const maxX = tX < x ? x : tX;
-
-        const minY = tY > y ? y : tY;
-        const maxY = tY < y ? y : tY;
-
-        const detect = [
-          [ob.x, ob.y],
-          [ob.x + ob.w, ob.y],
-          [ob.x + ob.w, ob.y + ob.w],
-          [ob.x, ob.y + ob.h],
-        ];
-
-        let inRange = false;
-
-        detect.forEach((dt) => {
-          if (dt[0] > minX && dt[0] < maxX && dt[1] > minY && dt[1] < maxY) {
-            inRange = true;
-          }
-        });
-
-        if (inRange && ob?.zIndex > -1) {
-          ob.selected = true;
-          this.detectList.push(ob);
-        } else {
-          ob.selected = false;
-        }
-      });
-
-      if (this.detectList && this.detectList.length > 0) {
-        this.detectList.forEach((item) => {
-          item.selected = true;
-        });
-      }
-    }
-  }
-
-  onMouseDown(e) {
-    const { x, y, down } = this.obList.at(-1);
-    this.detectList = [];
-    // detect event in mouse change
-
-    if (down) {
-      this.obList?.slice(0, -1).forEach((ob) => {
-        const minX = ob.x;
-        const maxX = ob.x + ob.w;
-
-        const minY = ob.y;
-        const maxY = ob.y + ob.h;
-
-        const detect = [[x, y]];
-
-        let inRange = false;
-
-        detect.forEach((dt) => {
-          if (dt[0] > minX && dt[0] < maxX && dt[1] > minY && dt[1] < maxY) {
-            inRange = true;
-          }
-        });
-
-        if (inRange && ob?.zIndex > -1) {
-          ob.selected = true;
-        } else {
-          if (ob.selected) {
-            ob.selected = false;
-          }
-        }
-      });
-    }
-  }
 }
 
 class GameObject extends Component {
@@ -416,7 +312,7 @@ class GameObject extends Component {
     y: 0,
   };
   speed = 0.1;
-  g = 0;
+  gravity = 0;
   // imgs; frame: src: link, end: timestamp - ms
   imgs = [];
   dImage = {
@@ -442,54 +338,4 @@ class GameObject extends Component {
   }
 
   // add context to drive
-}
-
-class MouseObject extends Component {
-  zIndex = 999;
-  selected = false;
-  down = false;
-  type = "mouse";
-
-  constructor(name, x, y, w, h, id, s) {
-    super(name, x, y, w, h, id, s);
-    this.name = name;
-    this.id = id;
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.s = s;
-  }
-
-  onMouseDown(e) {
-    this.x = e.clientX;
-    this.y = e.clientY;
-    this.w = 0;
-    this.h = 0;
-
-    this.down = true;
-  }
-
-  onMouseMove(e) {
-    if (this.down) {
-      this.w = e.clientX - this.x;
-      this.h = e.clientY - this.y;
-    }
-  }
-
-  onMouseUp(e) {
-    this.w = 0;
-    this.h = 0;
-
-    this.down = false;
-  }
-
-  draw(context) {
-    if (!this.down) {
-      this.clear();
-      drawX(this.ctx, this.x - 10, this.y - 10, 10, 3);
-    } else {
-      drawRawSelected(this.ctx, this.x, this.y, this.w, this.h);
-    }
-  }
 }

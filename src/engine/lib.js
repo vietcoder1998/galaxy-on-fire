@@ -66,10 +66,9 @@ function drawDashedLine(ctx, x, y, ex, ey) {
   ctx.lineTo(ex, ey);
   ctx.stroke();
   ctx.setLineDash([]);
-
 }
 
-function drawCir(ctx, x, y, r) {
+function drawCircle(ctx, x, y, r) {
   ctx.restore();
 
   ctx.beginPath();
@@ -78,16 +77,17 @@ function drawCir(ctx, x, y, r) {
   ctx.stroke();
 }
 
-function drawHeal(ctx, x, y, percent) {
+function drawHealth(ctx, x, y, percent) {
   ctx.restore();
 
-  ctx.strokeStyle = "#4eff00";
   ctx.moveTo(x, y);
+  ctx.strokeStyle = "#4eff00";
   ctx.lineTo(x + percent, y);
   ctx.stroke();
 
-  ctx.strokeStyle = "#ec1e1e90";
   ctx.moveTo(x + percent, y);
+  ctx.strokeStyle = "#ec1e1e90";
+
   ctx.lineTo(x + 100, y);
   ctx.stroke();
 }
