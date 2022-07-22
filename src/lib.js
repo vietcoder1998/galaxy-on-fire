@@ -18,6 +18,8 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r, color) {
 };
 
 function drawSelected(ctx, x, y, w, h) {
+  ctx.restore();
+
   ctx.beginPath();
   ctx.moveTo(x - 4, y - 4);
   ctx.lineTo(x - 4, y + 4 + h);
@@ -30,6 +32,8 @@ function drawSelected(ctx, x, y, w, h) {
 }
 
 function drawRawSelected(ctx, x, y, w, h) {
+  ctx.restore();
+
   ctx.beginPath();
   ctx.fillStyle = "#ffffff00";
   ctx.moveTo(x, y);
@@ -43,6 +47,7 @@ function drawRawSelected(ctx, x, y, w, h) {
 }
 
 function detectRange(ctx, x, y, w, h) {
+  ctx.restore();
   ctx.beginPath();
   ctx.moveTo(x - 4, y - 4);
   ctx.lineTo(x - 4, y + 4 + h);
@@ -55,6 +60,7 @@ function detectRange(ctx, x, y, w, h) {
 }
 
 function drawX(ctx, x, y, s, w) {
+  ctx.restore();
   ctx.beginPath();
   ctx.moveTo(x - (s ?? 20), y - (s ?? 20));
   ctx.lineTo(x + (s ?? 20), y + (s ?? 20));
@@ -68,11 +74,31 @@ function drawX(ctx, x, y, s, w) {
 
 function drawDashedLine(ctx, x, y, ex, ey) {
   // Dashed line
+  ctx.restore();
   ctx.beginPath();
   ctx.strokeStyle = "#4eff00";
   ctx.setLineDash([15, 3]);
   ctx.moveTo(x, y);
   ctx.lineTo(ex, ey);
   ctx.stroke();
-  ctx.restore();
 }
+
+function drawCir(ctx, x, y, r) {
+  ctx.restore();
+  ctx.beginPath();
+  ctx.strokeStyle = "#ec1e1e90";
+  ctx.arc(x, y, r, 0, 2 * Math.PI);
+  ctx.stroke();
+}
+
+function drawHeal(ctx, x, y, percent) {
+  const w = 100
+
+  ctx.restore();
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(200, 100);
+  ctx.strokeStyle = "#4eff00";
+  ctx.stroke(x, y);
+}
+

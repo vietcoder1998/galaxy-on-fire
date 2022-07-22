@@ -13,6 +13,7 @@ class Behavior {
   init(e) {}
 
   obList = [];
+  keyListen = [];
 
   constructor() {
     this.canvas = document.querySelector("canvas#defaultGame");
@@ -28,6 +29,15 @@ class Component extends Behavior {
   w;
   h;
   id;
+  vector = {
+    x: 0,
+    y: 0,
+  };
+  endPoint = {
+    x: this.x,
+    y: this.y,
+  };
+
   name;
   stop;
   selected;
@@ -40,6 +50,20 @@ class Component extends Behavior {
     return this.instance;
   }
 
+  get _pos() {
+    return {
+      x: this.x + this.w / 2,
+      y: this.y + this.h / 2,
+    };
+  }
+
+  set _vector(vector) {
+    this.vector = {
+      x: vector.x ?? 0,
+      y: vector.y ?? 0,
+    };
+  }
+
   constructor(name, x, y, w, h, id, s) {
     super();
     this.name = name;
@@ -49,22 +73,40 @@ class Component extends Behavior {
     this.h = h;
     this.id = id;
     this.s = s;
+    this._vector = { x: 0, y: 0 };
   }
 
   // launch
   launch() {
     try {
       if (!this.stop) {
-        if (this.g) {
-          this.y += this.vector.y;
-          this.vector.y += this.g / 60;
-        }
-
         // Clear
         this.beforeDraw(this);
         this.loop(this);
         this.draw(this);
         this.afterDraw(this);
+
+        if (
+          this._pos.x === this.endPoint.x ||
+          this._pos.y === this.endPoint.y
+        ) {
+          this.vector = {
+            x: 0,
+            y: 0,
+          };
+        }
+
+        // call direction
+        if (this.g && this.vector) {
+          this.y += this.vector.y;
+          this.vector.y += this.g / 60;
+        }
+
+        if (this.vector && this.speed) {
+          // moving with vector
+          this.x += this.vector.x * this.speed;
+          this.y += this.vector.y * this.speed;
+        }
       }
 
       // End
@@ -166,19 +208,21 @@ class Scene extends Component {
       });
       this.onMouseDown(e);
     };
-    this.canvas.onkeydown = (e) => {
+
+    document.addEventListener("keydown", (e) => {
       this.obList.forEach((ob) => {
         ob.onKeyDown(e);
       });
-      this.onMouseUp(e);
-    };
-    this.canvas.onkeyup = (e) => {
+      this.onKeyDown(e);
+    });
+
+    document.addEventListener("keydown", (e) => {
       this.obList.forEach((ob) => {
-        ob.onkeydown(e);
+        ob.onKeyUp(e);
       });
 
       this.onKeyUp(e);
-    };
+    });
   }
 
   // add game object
@@ -290,6 +334,44 @@ class Scene extends Component {
       }
     }
   }
+
+ 
+  onKeyUp(e) {}
+
+  onMouseDown(e) {
+    const { x, y, down } = this.obList.at(-1);
+    this.detectList = [];
+    // detect event in mouse change
+
+    if (down) {
+      this.obList?.slice(0, -1).forEach((ob) => {
+        const minX = ob.x;
+        const maxX = ob.x + ob.w;
+
+        const minY = ob.y;
+        const maxY = ob.y + ob.h;
+
+        const detect = [[x, y]];
+
+        let inRange = false;
+
+        detect.forEach((dt) => {
+          if (dt[0] > minX && dt[0] < maxX && dt[1] > minY && dt[1] < maxY) {
+            inRange = true;
+          }
+        });
+
+        if (inRange && ob?.zIndex > -1) {
+          ob.selected = true;
+          this.detectList.push(ob);
+        } else {
+          if (ob.selected) {
+            ob.selected = false;
+          }
+        }
+      });
+    }
+  }
 }
 class GameObject extends Component {
   x = 0;
@@ -303,6 +385,8 @@ class GameObject extends Component {
     x: 0,
     y: 0,
   };
+  speed = 0.1;
+  g = 0;
   // imgs; frame: src: link, end: timestamp - ms
   imgs = [];
   dImage = {
@@ -372,16 +456,10 @@ class MouseObject extends Component {
 
   draw(context) {
     if (!this.down) {
+      this.clear();
       drawX(this.ctx, this.x - 10, this.y - 10, 10, 3);
     } else {
       drawRawSelected(this.ctx, this.x, this.y, this.w, this.h);
-
-      if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
-        this.dImage = this.imgs[0];
-      } else {
-        this.imgFrame += 1;
-        this.dImage = this.imgs[this.imgFrame];
-      }
     }
   }
 }

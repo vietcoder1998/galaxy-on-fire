@@ -6,7 +6,6 @@ class Sprite extends GameObject {
   type = "character";
   color = "black";
   zIndex = 0;
-  speed = 0.1;
   type = "sprite";
   selected = false;
 
