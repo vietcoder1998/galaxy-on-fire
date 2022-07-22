@@ -6,7 +6,7 @@ class Scene1Controller extends GameController {
     const { x, y, w, h, down } = this.obList.at(-1);
 
     if (down) {
-      this.obList?.slice(0, -1).forEach((ob) => {
+      this.obList?.slice(0, -2).forEach((ob) => {
         const tX = x + w;
         const tY = y + h;
 
@@ -33,17 +33,8 @@ class Scene1Controller extends GameController {
 
         if (inRange && ob?.zIndex > -1) {
           ob.selected = true;
-          this.detectList.push(ob);
-        } else {
-          ob.selected = false;
         }
       });
-
-      if (this.detectList && this.detectList.length > 0) {
-        this.detectList.forEach((item) => {
-          item.selected = true;
-        });
-      }
     }
   }
 
@@ -53,13 +44,11 @@ class Scene1Controller extends GameController {
     // detect event in mouse change
 
     if (down) {
-      this.obList?.slice(0, -1).forEach((ob) => {
+      this.obList?.slice(0, -2).forEach((ob) => {
         const minX = ob.x;
         const maxX = ob.x + ob.w;
-
         const minY = ob.y;
         const maxY = ob.y + ob.h;
-
         const detect = [[x, y]];
 
         let inRange = false;
@@ -71,11 +60,7 @@ class Scene1Controller extends GameController {
         });
 
         if (inRange && ob?.zIndex > -1) {
-          ob.selected = true;
-        } else {
-          if (ob.selected) {
-            ob.selected = false;
-          }
+          ob.selected = !ob.selected;
         }
       });
     }
@@ -90,9 +75,13 @@ class Bullet extends Sprite {
     x: 0,
     y: 0,
   };
+  limit = {
+    x: [-20, 200],
+    y: [-20, 200],
+  };
 
-  constructor(name, x, y, w, h, id, s) {
-    super(name, x, y, w, h, id, s);
+  constructor(name, x, y, w, h, s, id) {
+    super(name, x, y, w, h, s, id);
     this.name = name;
     this.id = id;
     this.x = x;
@@ -102,28 +91,29 @@ class Bullet extends Sprite {
     this.s = s;
   }
 
-  onMouseDown(e) {
-    if (this.selected) {
-      drawDashedLine(this.ctx, this._pos.x, this._pos.y, e.clientX, e.clientY);
-
-      this.endPoint = {
-        x: e.clientX,
-        y: e.clientY,
-      };
-
-      this.vector = calculateVector2D(
-        this._pos.x,
-        this._pos.y,
-        e.clientX - this.w / 2,
-        e.clientY - this.h / 2,
-        this.speed
-      );
-
-      console.log(this.endPoint, this.vector);
+  loop() {
+    if (
+      (this.x < this.limit.x[0] && this.x > this.limit.x[1]) ||
+      (this.y < this.limit.y[0] && this.y > this.limit.y[1])
+    ) {
+      this.destroy();
     }
+
+    this.move();
   }
 
-  onKeyDown(e) {}
+  move() {
+    if (this.gravity && this.vector) {
+      this.y += this.vector.y;
+      this.vector.y += this.gravity;
+    }
+
+    if (this.vector && this.speed) {
+      // moving with vector
+      this.x += this.vector.x * this.speed;
+      this.y += this.vector.y * this.speed;
+    }
+  }
 }
 
 // Tank
@@ -135,15 +125,22 @@ class Tank extends Sprite {
   };
   bullets = [];
   attRange = 100;
-  percent = 80;
   heal = 1000;
+  remainHeal = 1000;
   point = {
     x: 0,
     y: 0,
   };
+  limitBullet = 10;
+  isAttack = false;
+  alive = true;
 
-  constructor(name, x, y, w, h, id, s) {
-    super(name, x, y, w, h, id, s);
+  get percent() {
+    return (this.remainHeal / this.heal) * 100;
+  }
+
+  constructor(name, x, y, w, h, s, id) {
+    super(name, x, y, w, h, s, id);
     this.name = name;
     this.id = id;
     this.x = x;
@@ -154,14 +151,63 @@ class Tank extends Sprite {
   }
 
   // draw before use
-  afterDraw() {
-    drawCircle(this.ctx, this._pos.x, this._pos.y, this.attRange);
-    drawHealth(this.ctx, this.x, this.y - 20, this.percent);
-  }
+  afterDraw() {}
 
   // write action in here
   loop() {
-    this.move();
+    if (this.alive) {
+      if (this.selected || this.isAttack) {
+        drawHealth(this.ctx, this.x, this.y - 20, this.percent);
+        drawCircle(
+          this.ctx,
+          this._pos.x,
+          this._pos.y,
+          this.attRange,
+          "#4eff0030"
+        );
+      }
+
+      this.checkEnemy();
+      this.move();
+    } else {
+      this.color = "whitesmoke";
+    }
+  }
+
+  checkEnemy() {
+    const enemyList = this._sensor(this.attRange);
+    enemyList.forEach((enemy) => {
+      if (enemy.alive) {
+        enemy.isAttack = true;
+        this.shoot(enemy);
+      }
+    });
+  }
+
+  shoot(enemy) {
+    const bullet = new Bullet("", this._pos.x, this._pos.y, 1, 1, "", 2);
+    bullet.color = "yellow";
+    bullet.vector = calculateVector2D(
+      this._pos.x,
+      this._pos.y,
+      enemy._pos.x,
+      enemy._pos.y,
+      5
+    );
+    bullet.speed = 3;
+
+    if (enemy.remainHeal > 0) {
+      enemy.remainHeal -= 1;
+    } else {
+      enemy.alive = false;
+    }
+
+    if (this.limitBullet < this.bullets.length) {
+      this.bullets.pop();
+    } else {
+      this.bullets?.unshift(bullet);
+      this.bullets?.forEach((item) => item?.launch());
+    }
   }
 
   move() {
@@ -224,6 +270,18 @@ class Tank extends Sprite {
       };
     }
 
+    if (this.keyListen?.includes("b")) {
+      this.shoot();
+    }
+
+    if (this.keyListen?.includes("Escape")) {
+      this.selected = false;
+      this.vector = {
+        x: 0,
+        y: 0,
+      };
+    }
+
     if (this.keyListen.includes("a") && this.keyListen.includes("Meta")) {
       this.selected = true;
     }
@@ -236,8 +294,8 @@ class MouseObject extends Component {
   down = false;
   type = "mouse";
 
-  constructor(name, x, y, w, h, id, s) {
-    super(name, x, y, w, h, id, s);
+  constructor(name, x, y, w, h, s, id) {
+    super(name, x, y, w, h, s, id);
     this.name = name;
     this.id = id;
     this.x = x;

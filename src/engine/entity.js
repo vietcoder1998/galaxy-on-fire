@@ -9,8 +9,8 @@ class Sprite extends GameObject {
   type = "sprite";
   selected = false;
 
-  constructor(name, x, y, w, h, id, s) {
-    super(name, x, y, w, h, id, s);
+  constructor(name, x, y, w, h, s, id) {
+    super(name, x, y, w, h, s, id);
     this.name = name;
     this.id = id;
     this.x = x;
@@ -39,13 +39,12 @@ class Camera extends GameObject {
   y;
   w;
   h;
-  type = "map";
   color = "gray";
   zIndex = -999;
   type = "camera";
 
-  constructor(name, x, y, w, h, id, s) {
-    super(name, x, y, w, h, id, s);
+  constructor(name, x, y, w, h, s, id) {
+    super(name, x, y, w, h, s, id);
     this.name = name;
     this.id = id;
     this.x = x;
@@ -66,8 +65,6 @@ class Tile extends GameObject {
       if (this.dImage && this.dImage.src && this.imgs.length > 0) {
         this.ctx.drawImage(this.dImage.src, init.x);
       } else {
-        //
-
         // clear
         drawRawSelected(this.ctx, this.x, this.y, this.w, this.h);
 

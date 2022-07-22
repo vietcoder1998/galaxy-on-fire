@@ -1,3 +1,4 @@
+const obList = [];
 ///
 class Behavior {
   /**
@@ -20,14 +21,13 @@ class Behavior {
     this.ctx = this.canvas.getContext("2d");
     this.init();
   }
-
-  init() {}
 }
 class Component extends Behavior {
   x;
   y;
   w;
   h;
+  s;
   id;
   vector = {
     x: 0,
@@ -40,6 +40,7 @@ class Component extends Behavior {
   dImage;
   imgs = [];
   obList = [];
+  collisions = [];
 
   get _instance() {
     return this.instance;
@@ -59,7 +60,7 @@ class Component extends Behavior {
     };
   }
 
-  constructor(name, x, y, w, h, id, s) {
+  constructor(name, x, y, w, h, s, id) {
     super();
     this.name = name;
     this.x = x;
@@ -93,7 +94,7 @@ class Component extends Behavior {
       this.ctx.fillRect(this.x, this.y, this.w, this.h);
 
       if (this.selected) {
-        drawSelected(this.ctx, this.x, this.y, this.w, this.h);
+        drawCircle(this.ctx, this._pos.x, this._pos.y, this.s, "#4eff1080");
       }
 
       if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
@@ -107,11 +108,6 @@ class Component extends Behavior {
 
   // action in after draw
   afterDraw(context) {}
-
-  // clear
-  clear(context) {
-    this.ctx.clearRect(this.x, this.y, this.w, this.h);
-  }
 
   // launch
   launch() {
@@ -131,6 +127,14 @@ class Component extends Behavior {
       throw error;
     }
   }
+  destroy(e) {
+    delete this;
+  }
+
+  // clear
+  clear(context) {
+    this.ctx.clearRect(this.x, this.y, this.w, this.h);
+  }
 }
 
 class Scene extends Component {
@@ -146,9 +150,14 @@ class Scene extends Component {
   time = 0;
   controller = {};
   camera = {};
+  limit = {
+    x: this.w,
+    y: this.h,
+  };
 
   set _controller(controller) {
     controller.ctx = this.ctx;
+    controller.scene = this;
     this.controller = controller;
   }
 
@@ -157,8 +166,8 @@ class Scene extends Component {
     this.camera = camera;
   }
 
-  constructor(name, x, y, w, h, id, s) {
-    super(name, x, y, w, h, id, s);
+  constructor(name, x, y, w, h, s, id) {
+    super(name, x, y, w, h, s, id);
     this.name = name;
     this.x = x;
     this.y = y;
@@ -231,9 +240,11 @@ class Scene extends Component {
 // Controller
 class GameController extends Component {
   obList = [new MouseObject("mouse", 0, 0, 0, 0, "mouse1", 0)];
+  collision = [];
+  type="mouse"
 
-  constructor(name, x, y, w, h, id, s) {
-    super(name, x, y, w, h, id, s);
+  constructor(name, x, y, w, h, s, id) {
+    super(name, x, y, w, h, s, id);
     this.name = name;
     this.x = x;
     this.y = y;
@@ -287,8 +298,10 @@ class GameController extends Component {
       parentId: this.id,
       root: { x: this.x, y: this.y },
       ob: this.ctx,
+      pid: this.obList.length,
     });
     this.obList.unshift(ob);
+    obList.push(ob);
   }
 
   // add multiple game object
@@ -296,6 +309,28 @@ class GameController extends Component {
     if (args && args.length > 0) {
       args.forEach((ob) => this.add(ob));
     }
+  }
+
+  collision() {
+    const list = [];
+    this.obList.splice(0, -2).forEach((ob, id) => {
+      const pX = ob._pos.x;
+      const pY = ob._pos.y;
+
+      this.obList.splice(0, -2).forEach((ob1, id1) => {
+        const pX1 = ob1._pos.x;
+        const pY1 = ob1._pos.y;
+
+        const dx = Math.abs(pX1 - pX);
+        const dy = Math.abs(pY1 - pY);
+
+        if (Math.sqrt(dx * dx + dy * dy) < ob.s + ob1.s) {
+          list.push([id, id1]);
+        }
+      });
+    });
+
+    return list;
   }
 }
 
@@ -306,12 +341,13 @@ class GameObject extends Component {
   h = 0;
   s = 0;
   r = 0;
+  fps;
   type;
   vector = {
     x: 0,
     y: 0,
   };
-  speed = 0.1;
+  speed = 1;
   gravity = 0;
   // imgs; frame: src: link, end: timestamp - ms
   imgs = [];
@@ -326,6 +362,10 @@ class GameObject extends Component {
   zIndex = 1;
   type = "gameob";
 
+  get _speed() {
+    this.speed / this.fps;
+  }
+
   constructor(name, x, y, w, h, id, r, s) {
     super(name, x, y, w, h, id, r, s);
     this.name = name;
@@ -337,5 +377,50 @@ class GameObject extends Component {
     this.s = s;
   }
 
-  // add context to drive
+  _collision() {
+    const { x, y } = this._pos;
+    const list = [];
+
+    obList
+      .filter((item) => item.name !== this.name)
+      .forEach((ob) => {
+        const pX1 = ob.x;
+        const pY1 = ob.y;
+
+        const dx = Math.abs(pX1 - x);
+        const dy = Math.abs(pY1 - y);
+
+        if (Math.sqrt(dx * dx + dy * dy) < ob.s + ob.s) {
+          list.push(ob);
+        }
+      });
+
+    return list;
+  }
+
+  _sensor(range) {
+    const { x, y } = this._pos;
+    const list = [];
+
+    obList
+      .filter(
+        (item, id) =>
+          item.name !== this.name &&
+          item.type !== "mouse" &&
+          item.type !== "camera"
+      )
+      .forEach((ob) => {
+        const pX1 = ob._pos.x;
+        const pY1 = ob._pos.y;
+
+        const dx = Math.abs(pX1 - x);
+        const dy = Math.abs(pY1 - y);
+
+        if (Math.sqrt(dx * dx + dy * dy) < range) {
+          list.push(ob);
+        }
+      });
+
+    return list;
+  }
 }
