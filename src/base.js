@@ -37,7 +37,6 @@ class Component extends Behavior {
     x: this.x,
     y: this.y,
   };
-
   name;
   stop;
   selected;
@@ -74,6 +73,44 @@ class Component extends Behavior {
     this.id = id;
     this.s = s;
     this._vector = { x: 0, y: 0 };
+  }
+
+  // before life cycle
+  beforeDraw(context) {}
+
+  // action in loop range
+  loop(context) {}
+
+  // action in draw
+  draw(context, cb) {
+    if (this.dImage && this.dImage.src && this.imgs.length > 0) {
+      this.ctx.drawImage(this.dImage.src, init.x);
+    } else {
+      // fill color for background
+      this.ctx.fillStyle = this.color;
+
+      // fill rects
+      this.ctx.fillRect(this.x, this.y, this.w, this.h);
+
+      if (this.selected) {
+        drawSelected(this.ctx, this.x, this.y, this.w, this.h);
+      }
+
+      if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
+        this.dImage = this.imgs[0];
+      } else {
+        this.imgFrame += 1;
+        this.dImage = this.imgs[this.imgFrame];
+      }
+    }
+  }
+
+  // action in after draw
+  afterDraw(context) {}
+
+  // clear
+  clear(context) {
+    this.ctx.clearRect(this.x, this.y, this.w, this.h);
   }
 
   // launch
@@ -116,57 +153,39 @@ class Component extends Behavior {
       throw error;
     }
   }
-
-  // before life cycle
-  beforeDraw(context) {}
-
-  // action in loop range
-  loop(context) {}
-
-  // action in draw
-  draw(context, cb) {
-    if (this.dImage && this.dImage.src && this.imgs.length > 0) {
-      this.ctx.drawImage(this.dImage.src, init.x);
-    } else {
-      // fill color for background
-      this.ctx.fillStyle = this.color;
-
-      // fill rects
-      this.ctx.fillRect(this.x, this.y, this.w, this.h);
-
-      if (this.selected) {
-        drawSelected(this.ctx, this.x, this.y, this.w, this.h);
-      }
-
-      if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
-        this.dImage = this.imgs[0];
-      } else {
-        this.imgFrame += 1;
-        this.dImage = this.imgs[this.imgFrame];
-      }
-    }
-  }
-
-  // action in after draw
-  afterDraw(context) {}
-
-  // clear
-  clear(context) {
-    this.ctx.clearRect(this.x, this.y, this.w, this.h);
-  }
 }
+
 class Scene extends Component {
   fps = 60;
   frame = 0;
   timeMachine = 0;
   stop = false;
-  obList = [new MouseObject("mouse", 0, 0, 0, 0, "mouse1", 0)];
   action;
   selector = {};
   zIndex = 0;
   lastClick = { x: 0, y: 0 };
   detectList = [];
   time = 0;
+  controller = {};
+  camera = {};
+
+  set _controller(controller) {
+    controller.ctx = this.ctx;
+    controller.canvas = this.canvas;
+    controller.x = this.x;
+    controller.y = this.y;
+    controller.w = this.w;
+    controller.h = this.h;
+    controller.id = this.id;
+    controller.s = this.s;
+
+    this.controller = controller;
+  }
+
+  set _camera(camera) {
+    camera.ctx = this.ctx;
+    this.camera = camera;
+  }
 
   constructor(name, x, y, w, h, id, s) {
     super(name, x, y, w, h, id, s);
@@ -177,9 +196,11 @@ class Scene extends Component {
     this.h = h;
     this.id = id;
     this.s = s;
+
+    this.init();
   }
 
-  start() {
+  init() {
     // init canvas
     this.canvas.width = this.w;
     this.canvas.height = this.h;
@@ -187,70 +208,20 @@ class Scene extends Component {
     this.canvas.style.left = this.y + "px";
   }
 
-  // init
-  init() {
-    // canvas
-    this.canvas.onmousemove = (e) => {
-      this.obList.forEach((ob) => {
-        ob.onMouseMove(e);
-      });
-      this.onMouseMove(e);
-    };
-    this.canvas.onmouseup = (e) => {
-      this.obList.forEach((ob) => {
-        ob.onMouseUp(e);
-      });
-      this.onMouseUp(e);
-    };
-    this.canvas.onmousedown = (e) => {
-      this.obList.forEach((ob) => {
-        ob.onMouseDown(e);
-      });
-      this.onMouseDown(e);
-    };
-
-    document.addEventListener("keydown", (e) => {
-      this.obList.forEach((ob) => {
-        ob.onKeyDown(e);
-      });
-      this.onKeyDown(e);
-    });
-
-    document.addEventListener("keydown", (e) => {
-      this.obList.forEach((ob) => {
-        ob.onKeyUp(e);
-      });
-
-      this.onKeyUp(e);
-    });
-  }
-
-  // add game object
-  add(ob, name) {
-    Object.assign(ob, {
-      parentId: this.id,
-      root: { x: this.x, y: this.y },
-    });
-    this.obList.unshift(ob);
-  }
-
-  // add multiple game object
-  addList(...args) {
-    if (args && args.length > 0) {
-      args.forEach((ob) => this.add(ob));
-    }
-  }
-
   // render ( only scene render)
-  render(callback) {
-    this.start();
+  render() {
     try {
       // render view
       if (!this.stop && this.ctx) {
         // clear rect
         this.action = setInterval(() => {
           this.clear();
-          this.obList?.map((item) => item?.launch());
+          this.camera?.launch();
+          if (this.controller && this.controller.obList.length > 0) {
+            this.controller?.obList?.map((item) => {
+              item && item.launch();
+            });
+          }
           this.info();
         }, 1000 / this.fps);
       } else {
@@ -287,11 +258,79 @@ class Scene extends Component {
     this.ctx.fillText("time: " + this.time, this.w - 100, 60);
     this.ctx.fillText("date: " + this.timeMachine, this.w - 100, 80);
   }
+}
+
+class GameController extends Component {
+  obList = [new MouseObject("mouse", 0, 0, 0, 0, "mouse1", 0)];
+
+  constructor(name, x, y, w, h, id, s) {
+    super(name, x, y, w, h, id, s);
+    this.name = name;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.id = id;
+    this.s = s;
+  }
+
+  init() {
+    this.canvas.onmousemove = (e) => {
+      this.obList.forEach((ob) => {
+        ob.onMouseMove(e);
+      });
+      this.onMouseMove(e);
+    };
+
+    this.canvas.onmouseup = (e) => {
+      this.obList.forEach((ob) => {
+        ob.onMouseUp(e);
+      });
+      this.onMouseUp(e);
+    };
+
+    this.canvas.onmousedown = (e) => {
+      this.obList.forEach((ob) => {
+        ob.onMouseDown(e);
+      });
+      this.onMouseDown(e);
+    };
+
+    document.addEventListener("keydown", (e) => {
+      this.obList.forEach((ob) => {
+        ob.onKeyDown(e);
+      });
+      this.onKeyDown(e);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      this.obList.forEach((ob) => {
+        ob.onKeyUp(e);
+      });
+
+      this.onKeyUp(e);
+    });
+  }
+
+  // add game object
+  add(ob, name) {
+    Object.assign(ob, {
+      parentId: this.id,
+      root: { x: this.x, y: this.y },
+      ob: this.ctx,
+    });
+    this.obList.unshift(ob);
+  }
+
+  // add multiple game object
+  addList(...args) {
+    if (args && args.length > 0) {
+      args.forEach((ob) => this.add(ob));
+    }
+  }
 
   onMouseMove(e) {
     const { x, y, w, h, down } = this.obList.at(-1);
-    this.detectList = [];
-    // detect event in mouse change
 
     if (down) {
       this.obList?.slice(0, -1).forEach((ob) => {
@@ -335,9 +374,6 @@ class Scene extends Component {
     }
   }
 
- 
-  onKeyUp(e) {}
-
   onMouseDown(e) {
     const { x, y, down } = this.obList.at(-1);
     this.detectList = [];
@@ -363,7 +399,6 @@ class Scene extends Component {
 
         if (inRange && ob?.zIndex > -1) {
           ob.selected = true;
-          this.detectList.push(ob);
         } else {
           if (ob.selected) {
             ob.selected = false;
@@ -373,6 +408,7 @@ class Scene extends Component {
     }
   }
 }
+
 class GameObject extends Component {
   x = 0;
   y = 0;
@@ -463,4 +499,3 @@ class MouseObject extends Component {
     }
   }
 }
-class GameController extends Component {}

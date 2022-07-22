@@ -1,3 +1,5 @@
+// Game controller
+
 // Wallet
 class Bullet extends Sprite {
   type = "sprite";
@@ -45,14 +47,15 @@ class Bullet extends Sprite {
 // Tank
 class Tank extends Sprite {
   type = "sprite";
-  speed = 2;
+  speed = 1;
   vector = {
     x: 0,
     y: 0,
   };
   bullets = [];
   attRange = 100;
-  health = [80, 100]
+  percent = 80;
+  heal = 1000
 
   constructor(name, x, y, w, h, id, s) {
     super(name, x, y, w, h, id, s);
@@ -65,8 +68,9 @@ class Tank extends Sprite {
     this.s = s;
   }
 
-  afterDraw() {
+  beforeDraw() {
     drawCir(this.ctx, this._pos.x, this._pos.y, this.attRange);
+    drawHeal(this.ctx, this.x, this.y - 20, this.percent)
   }
 
   onMouseDown(e) {
