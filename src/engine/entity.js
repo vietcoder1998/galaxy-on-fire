@@ -29,7 +29,6 @@ class Sprite extends GameObject {
       this.type === "sprite"
     ) {
       this.selected = true;
-      console.log("selected", this.name);
     }
   }
 }
@@ -43,8 +42,8 @@ class Camera extends GameObject {
   zIndex = -999;
   type = "camera";
 
-  constructor(name, x, y, w, h, s, id) {
-    super(name, x, y, w, h, s, id);
+  constructor(name, x, y, w, h, id, s) {
+    super(name, x, y, w, h, id, s);
     this.name = name;
     this.id = id;
     this.x = x;
@@ -60,7 +59,7 @@ class Tile extends GameObject {
   y;
   w;
   h;
-  selected = true;
+  selected = false;
   zIndex = 1;
 
   constructor(name, x, y, w, h, id, r, s) {
@@ -74,13 +73,42 @@ class Tile extends GameObject {
     this.s = s;
   }
 
+  onMouseDown(e, mouse) {
+    const { x, y, w, h } = this;
+    const detect = detectOver({ x, y, w, h }, [[mouse.x, mouse.y]]);
+
+    if (detect) {
+      this.selected = true;
+    } else {
+      this.selected = false;
+    }
+  }
+
+  onMouseMove(e, mouse) {
+    const { x, y, w, h } = mouse;
+    const detect = detectOver({ x, y, w, h }, [
+      [this.x, this.y],
+      [this.x + this.w, this.y],
+      [this.x + this.w, this.y + this.h],
+      [this.x, this.y + this.h],
+    ]);
+
+    if (detect) {
+      this.selected = true;
+    } else {
+      this.selected = false;
+    }
+  }
+
   draw() {
     if (this.dImage && this.dImage.src && this.imgs.length > 0) {
       this.ctx.drawImage(this.dImage.src, init.x);
     } else {
       // fill rects
       if (this.selected) {
-        drawSquare(this.ctx, this.x, this.y, this.w, this.h, "#4D118220");
+        drawSquare(this.ctx, this.x, this.y, this.w, this.h, "#4eff0070");
+      } else {
+        drawSquare(this.ctx, this.x, this.y, this.w, this.h, "#4D118210");
       }
 
       if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
@@ -94,22 +122,21 @@ class Tile extends GameObject {
 }
 
 class TitleMap extends GameObject {
-  column = 10;
-  row = 10;
   tiles = [];
+  color = "whitesmoke";
+  type = "tilemap";
 
-  constructor(name, x, y, w, h, id, r, s) {
-    super(name, x, y, w, h, id, r, s);
+  constructor(name, x, y, w, h, id, column, row) {
+    super(name, x, y, w, h, id);
     this.name = name;
     this.id = id;
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
-    this.s = s;
+    this.column = column;
+    this.row = row;
 
-    const column = 12;
-    const row = 8;
     const tiles = [];
     const wTile = Math.abs(this.w - this.x) / column;
     const hTile = Math.abs(this.h - this.y) / row;
@@ -119,11 +146,10 @@ class TitleMap extends GameObject {
 
       const y = this.y + i * hTile;
 
-      for (let j = 0; j < column;  j++) {
+      for (let j = 0; j < column; j++) {
         const x = this.x + j * hTile;
-
         const tile = new Tile(`tile_${i + "_" + j}`, x, y, wTile, hTile);
-
+        tile.canvas = this.canvas;
         tileRow.push(tile);
       }
 
@@ -131,7 +157,6 @@ class TitleMap extends GameObject {
     }
 
     this.tiles = tiles;
-    console.log(this.tiles);
   }
 
   draw() {
@@ -139,7 +164,8 @@ class TitleMap extends GameObject {
       this.ctx.drawImage(this.dImage.src, init.x);
     } else {
       // fill rects
-      this.ctx.fillRect(this.x, this.y, this.w, this.h, "green");
+      this.ctx.fillStyle = "#4eff0010";
+      this.ctx.fillRect(this.ctx, this.x, this.y, this.w, this.h);
 
       if (this.tiles && this.tiles.length > 0) {
         this.tiles.forEach((tileRow) => {

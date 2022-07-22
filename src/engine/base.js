@@ -241,7 +241,7 @@ class Scene extends Component {
 class GameController extends Component {
   obList = [new MouseObject("mouse", 0, 0, 0, 0, "mouse1", 0)];
   collision = [];
-  type="mouse"
+  type = "mouse";
 
   constructor(name, x, y, w, h, s, id) {
     super(name, x, y, w, h, s, id);
@@ -256,9 +256,20 @@ class GameController extends Component {
 
   init() {
     this.canvas.onmousemove = (e) => {
-      this.obList.forEach((ob) => {
-        ob.onMouseMove(e);
+      this.obList.forEach((ob, i) => {
+        if (ob?.type === "tilemap" || i <= this.obList.length - 1) {
+          ob?.tiles &&
+            ob?.tiles?.length > 0 &&
+            ob.tiles?.forEach((tiles) => {
+              tiles?.forEach((tile) => {
+                tile?.onMouseMove(e, this.obList.at(-1));
+              });
+            });
+        } else {
+          ob.onMouseMove(ob);
+        }
       });
+
       this.onMouseMove(e);
     };
 
@@ -270,8 +281,18 @@ class GameController extends Component {
     };
 
     this.canvas.onmousedown = (e) => {
-      this.obList.forEach((ob) => {
-        ob.onMouseDown(e);
+      this.obList.forEach((ob, i) => {
+        if (ob?.type === "tilemap" || i<= this.obList.length - 1) {
+          ob?.tiles &&
+            ob?.tiles?.length > 0 &&
+            ob.tiles?.forEach((tiles) => {
+              tiles?.forEach((tile) => {
+                tile.onMouseDown(e, this.obList.at(-1));
+              });
+            });
+        } else {
+          ob.onMouseMove(ob);
+        }
       });
       this.onMouseDown(e);
     };
