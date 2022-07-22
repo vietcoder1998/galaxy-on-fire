@@ -73,7 +73,11 @@ class Component extends Behavior {
     this.id = id;
     this.s = s;
     this._vector = { x: 0, y: 0 };
+
+    this.init();
   }
+
+  init() {}
 
   // before life cycle
   beforeDraw(context) {}
@@ -171,14 +175,6 @@ class Scene extends Component {
 
   set _controller(controller) {
     controller.ctx = this.ctx;
-    controller.canvas = this.canvas;
-    controller.x = this.x;
-    controller.y = this.y;
-    controller.w = this.w;
-    controller.h = this.h;
-    controller.id = this.id;
-    controller.s = this.s;
-
     this.controller = controller;
   }
 
@@ -196,8 +192,6 @@ class Scene extends Component {
     this.h = h;
     this.id = id;
     this.s = s;
-
-    this.init();
   }
 
   init() {
