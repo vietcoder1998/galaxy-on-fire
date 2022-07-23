@@ -18,35 +18,35 @@ function listenEvent(_global, _instance) {
   const { mouse, canvas } = _global;
 
   canvas.onmousemove = (e) => {
+    mouse.onMouseMove(e);
+
     Object.values(_instance).forEach((value) => {
       if (value && value.length > 0) {
         value.forEach((item) => item?.onMouseMove(e));
       }
     });
-
-    mouse.onMouseMove(e);
   };
 
   // mouse up
   canvas.onmouseup = (e) => {
+    mouse.onMouseUp(e);
+
     Object.values(_instance).forEach((value) => {
       if (value && value.length > 0) {
         value.forEach((item) => item?.onMouseUp(e));
       }
     });
-
-    mouse.onMouseUp(e);
   };
 
   // mouse down
   canvas.onmousedown = (e) => {
+    mouse.onMouseDown(e);
+
     Object.values(_instance).forEach((value) => {
       if (value && value.length > 0) {
         value.forEach((item) => item.onMouseDown(e));
       }
     });
-
-    mouse.onMouseDown(e);
   };
 
   document.addEventListener("keyup", (e) => {
@@ -55,17 +55,14 @@ function listenEvent(_global, _instance) {
         value.forEach((item) => item.onKeyUp(e));
       }
     });
-
-    mouse.onKeyDown(e);
   });
 
   document.addEventListener("keydown", (e) => {
-    Object.values(_global).forEach((value) => {
+    Object.values(_instance).forEach((value) => {
       if (value && value.length > 0) {
-        value.onKeyDown(e);
+        value.forEach((item) => item.onKeyDown(e));
       }
     });
-    mouse.onKeyDown(e);
   });
 }
 
@@ -182,14 +179,18 @@ class Component extends Behavior {
   // before life cycle
   beforeDraw(context) {}
 
+  // binding ( can`t fix)
+  binding(e) {}
+
   // action in loop range
-  loop(context) {}
+  loop(e) {}
 
   // action in draw
-  draw(context, cb) {
+  draw(e) {
     if (this.dImage && this.dImage.src && this.imgs.length > 0) {
       this._ctx.drawImage(this.dImage.src, init.x);
     } else {
+      this._ctx.restore();
       this._ctx.fillStyle = this.color;
       this._ctx.fillRect(this.x, this.y, this.w, this.h);
 
@@ -214,6 +215,7 @@ class Component extends Behavior {
     try {
       if (!this.stop) {
         // Clear
+        this.binding(this);
         this.beforeDraw(this);
         this.loop(this);
         this.draw(this);
@@ -298,7 +300,7 @@ class Scene extends Component {
 
   // render ( only scene render)
   render() {
-    console.log(this._global, this._canvas);
+    console.log(this._global, this._instance);
     listenEvent(this._global, this._instance);
 
     try {
@@ -338,11 +340,8 @@ class Scene extends Component {
       this.time += 1;
     }
     this.timeMachine = new Date().toLocaleDateString();
-
     this._ctx.font = 20;
     this._ctx.fillStyle = "black";
-
-    // fill frame
     this._ctx.fillText("frame:" + this.frame, this.w - 100, 20);
     this._ctx.fillText("fps:" + this.fps, this.w - 100, 40);
     this._ctx.fillText("time: " + this.time, this.w - 100, 60);
@@ -352,7 +351,7 @@ class Scene extends Component {
 
 // Controller
 class GameController extends Component {
-  type = "mouse";
+  type = "gob";
 
   constructor(name, x, y, w, h, s, id) {
     super(name, x, y, w, h, s, id);
@@ -365,7 +364,7 @@ class GameController extends Component {
     this.s = s;
   }
 
-  collisions() {
+  get _collisions() {
     const list = [];
     this._objects.forEach((ob, id) => {
       const pX = ob._pos.x;
@@ -430,23 +429,20 @@ class GameObject extends Component {
     this.s = s;
   }
 
-  sensor(range) {
-    const { x, y } = this._pos;
-    const list = [];
-
-    this._objects.forEach((ob) => {
+  get collisions() {
+    const results = [];
+    this._objects.filter(item.name !== this.name).forEach((ob) => {
       const pX1 = ob._pos.x;
       const pY1 = ob._pos.y;
-
       const dx = Math.abs(pX1 - x);
       const dy = Math.abs(pY1 - y);
 
       if (Math.sqrt(dx * dx + dy * dy) < range) {
-        list.push(ob);
+        results.push(ob);
       }
     });
 
-    return list;
+    return results;
   }
 }
 

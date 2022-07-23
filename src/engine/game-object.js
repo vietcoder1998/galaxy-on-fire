@@ -41,6 +41,7 @@ class Camera extends GameObject {
   color = "gray";
   zIndex = -999;
   type = "camera";
+  speed = 0;
 
   constructor(name, x, y, w, h, id, s) {
     super(name, x, y, w, h, id, s);
@@ -52,6 +53,29 @@ class Camera extends GameObject {
     this.h = h;
     this.s = s;
   }
+
+  onKeyDown(e) {
+    switch (e.key) {
+      case "ArrowRight":
+        this.x += this.speed;
+        break;
+
+      case "ArrowLeft":
+        this.x -= this.speed;
+        break;
+
+      case "ArrowDown":
+        this.y += this.speed;
+        break;
+
+      case "ArrowUp":
+        this.y -= this.speed;
+        break;
+
+      default:
+        break;
+    }
+  }
 }
 
 class Tile extends GameObject {
@@ -59,6 +83,8 @@ class Tile extends GameObject {
   y;
   w;
   h;
+  col;
+  row;
   selected = false;
   zIndex = 1;
 
@@ -73,9 +99,10 @@ class Tile extends GameObject {
     this.s = s;
   }
 
-  onMouseDown(e, mouse) {
+  onMouseDown(e) {
     const { x, y, w, h } = this;
-    const detect = detectOver({ x, y, w, h }, [[mouse.x, mouse.y]]);
+    const detect = detectOver({ x, y, w, h }, [[e.x, e.y]]);
+    console.log("detect", this.col, this.row);
 
     if (detect) {
       this.selected = true;
@@ -84,8 +111,8 @@ class Tile extends GameObject {
     }
   }
 
-  onMouseMove(e, mouse) {
-    const { x, y, w, h } = mouse;
+  onMouseMove(e) {
+    const { x, y, w, h } = this._mouse;
     const detect = detectOver({ x, y, w, h }, [
       [this.x, this.y],
       [this.x + this.w, this.y],
@@ -125,8 +152,10 @@ class TitleMap extends GameObject {
   tiles = [];
   color = "whitesmoke";
   type = "tilemap";
+  column = 10;
+  row = 10;
 
-  constructor(name, x, y, w, h, id, column, row) {
+  constructor(name, x, y, w, h, id) {
     super(name, x, y, w, h, id);
     this.name = name;
     this.id = id;
@@ -134,9 +163,9 @@ class TitleMap extends GameObject {
     this.y = y;
     this.w = w;
     this.h = h;
-    this.column = column;
-    this.row = row;
+  }
 
+  setTile([row, column]) {
     const tiles = [];
     const wTile = Math.abs(this.w - this.x) / column;
     const hTile = Math.abs(this.h - this.y) / row;
@@ -149,13 +178,16 @@ class TitleMap extends GameObject {
       for (let j = 0; j < column; j++) {
         const x = this.x + j * hTile;
         const tile = new Tile(`tile_${i + "_" + j}`, x, y, wTile, hTile);
-        tile.canvas = this.canvas;
+        tile.col = x;
+        tile.row = y;
         tileRow.push(tile);
       }
 
       tiles.push(tileRow);
     }
 
+    this.row = row;
+    this.column = column;
     this.tiles = tiles;
   }
 

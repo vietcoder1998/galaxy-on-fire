@@ -1,124 +1,3 @@
-//mouse
-
-// Game controller
-class Scene1Controller extends GameController {
-  onMouseMove(e) {
-    const { x, y, w, h, down } = _global.mouse
-    const { objects } = this._instance;
-
-    if (down) {
-      objects?.forEach((ob) => {
-        const tX = x + w;
-        const tY = y + h;
-
-        // map
-        const minX = tX > x ? x : tX;
-        const maxX = tX < x ? x : tX;
-
-        const minY = tY > y ? y : tY;
-        const maxY = tY < y ? y : tY;
-
-        const detect = [
-          [ob.x, ob.y],
-          [ob.x + ob.w, ob.y],
-          [ob.x + ob.w, ob.y + ob.w],
-          [ob.x, ob.y + ob.h],
-        ];
-
-        let inRange = false;
-
-        detect.forEach((dt) => {
-          if (dt[0] > minX && dt[0] < maxX && dt[1] > minY && dt[1] < maxY) {
-            inRange = true;
-          }
-        });
-
-        if (inRange && ob?.zIndex > -1) {
-          ob.selected = true;
-        }
-      });
-    }
-  }
-
-  onMouseDown(e) {
-    const { x, y, down } = this._objects.at(-1);
-    this.detectList = [];
-    // detect event in mouse change
-
-    if (down) {
-      this._objects?.slice(0, -2).forEach((ob) => {
-        const minX = ob.x;
-        const maxX = ob.x + ob.w;
-        const minY = ob.y;
-        const maxY = ob.y + ob.h;
-        const detect = [[x, y]];
-
-        let inRange = false;
-
-        detect.forEach((dt) => {
-          if (dt[0] > minX && dt[0] < maxX && dt[1] > minY && dt[1] < maxY) {
-            inRange = true;
-          }
-        });
-
-        if (inRange && ob?.zIndex > -1) {
-          ob.selected = !ob.selected;
-        }
-      });
-    }
-  }
-}
-
-// Wallet
-class Bullet extends Sprite {
-  type = "sprite";
-  speed = 2;
-  vector = {
-    x: 0,
-    y: 0,
-  };
-  limit = {
-    x: [-20, 200],
-    y: [-20, 200],
-  };
-
-  constructor(name, x, y, w, h, s, id) {
-    super(name, x, y, w, h, s, id);
-    this.name = name;
-    this.id = id;
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.s = s;
-  }
-
-  loop() {
-    if (
-      (this.x < this.limit.x[0] && this.x > this.limit.x[1]) ||
-      (this.y < this.limit.y[0] && this.y > this.limit.y[1])
-    ) {
-      this.destroy();
-    }
-
-    this.move();
-  }
-
-  move() {
-    if (this.gravity && this.vector) {
-      this.y += this.vector.y;
-      this.vector.y += this.gravity;
-    }
-
-    if (this.vector && this.speed) {
-      // moving with vector
-      this.x += this.vector.x * this.speed;
-      this.y += this.vector.y * this.speed;
-    }
-  }
-}
-
-// Tank
 class Tank extends Sprite {
   speed = 2;
   vector = {
@@ -174,6 +53,26 @@ class Tank extends Sprite {
     } else {
       this.color = "whitesmoke";
     }
+  }
+
+  sensor(range) {
+    const { x, y } = this._pos;
+    const list = [];
+
+    this._objects
+      .filter((ob) => ob.name !== this.name)
+      .forEach((ob) => {
+        const pX1 = ob._pos.x;
+        const pY1 = ob._pos.y;
+        const dx = Math.abs(pX1 - x);
+        const dy = Math.abs(pY1 - y);
+
+        if (Math.sqrt(dx * dx + dy * dy) < range) {
+          list.push(ob);
+        }
+      });
+
+    return list;
   }
 
   checkEnemy() {
@@ -271,18 +170,14 @@ class Tank extends Sprite {
       this.keyListen.pop();
     }
 
-    if (this.keyListen?.includes("s")) {
+    if (e.key === "s") {
       this.vector = {
         x: 0,
         y: 0,
       };
     }
 
-    if (this.keyListen?.includes("b")) {
-      this.shoot();
-    }
-
-    if (this.keyListen?.includes("Escape")) {
+    if (e.key === "Escape") {
       this.selected = false;
       this.vector = {
         x: 0,
