@@ -38,7 +38,7 @@ class Camera extends GameObject {
   y;
   w;
   h;
-  color = "gray";
+  color = "#11111120";
   zIndex = -999;
   type = "camera";
   speed = 0;
@@ -97,18 +97,6 @@ class Tile extends GameObject {
     this.w = w;
     this.h = h;
     this.s = s;
-  }
-
-  onMouseDown(e) {
-    const { x, y, w, h } = this;
-    const detect = detectOver({ x, y, w, h }, [[e.x, e.y]]);
-    console.log("detect", this.col, this.row);
-
-    if (detect) {
-      this.selected = true;
-    } else {
-      this.selected = false;
-    }
   }
 
   onMouseMove(e) {
@@ -214,5 +202,12 @@ class TitleMap extends GameObject {
         this.dImage = this.imgs[this.imgFrame];
       }
     }
+  }
+}
+
+class UI extends GameObject {
+  borderColor = "black";
+  binding() {
+    drawRawSelected(this._ctx, this.x, this.y, this.w, this.h);
   }
 }

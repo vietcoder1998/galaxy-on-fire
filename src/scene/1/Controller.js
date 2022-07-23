@@ -6,7 +6,6 @@ class Scene1Controller extends GameController {
 
   onMouseMove(e) {
     const { x, y, w, h, down } = this._mouse;
-
     if (down) {
       this._objects?.forEach((ob) => {
         const tX = x + w;

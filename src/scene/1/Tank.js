@@ -110,6 +110,16 @@ class Tank extends Sprite {
       this.bullets?.forEach((item) => item?.launch());
     }
   }
+  onMouseDown(e) {
+    const { x, y, w, h } = this;
+    const detect = detectOver({ x, y, w, h }, [[this._mouse.x, this._mouse.y]]);
+
+    if (detect) {
+      this.selected = true;
+    } else {
+      this.selected = false;
+    }
+  }
 
   move() {
     if (

@@ -309,10 +309,10 @@ class Scene extends Component {
         // clear rect
         this.action = setInterval(() => {
           this.clear();
-          this._cameras.forEach((item) => item?.launch());
           this._tiles.forEach((item) => item?.launch());
           this._objects.forEach((item) => item?.launch());
           this._mouse.launch();
+          this._cameras.forEach((item) => item?.launch());
 
           this.info();
         }, 1000 / this.fps);
