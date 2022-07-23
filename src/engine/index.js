@@ -241,19 +241,16 @@ class Component extends Behavior {
   }
 
   setInfo([key, value]) {
-    console.log(key, value);
     if (Array.isArray(key)) {
-      const needChange = this[key[0]];
-
-      let i = 1;
-      while (i < key.length) {
-        needChange = needChange[key[i]];
-        i++;
+      if (this && this[key[0]]) {
+        console.table(this);
+        const t = this[key[0]];
+        Object.assign(t, { [key[1]]: value });
       }
-      console.log(needChange);
-      needChange = value;
-    } else if (this[key] && value) {
-      this[key] = value;
+    } else {
+      if (this[key] && value) {
+        this[key] = value;
+      }
     }
   }
 
@@ -605,6 +602,13 @@ class GameObject extends Component {
     this.w = w;
     this.h = h;
     this.s = s;
+  }
+
+  binding() {
+    if (this.gravity) {
+      this.y += this.vector.y;
+      this.vector.y += this.gravity;
+    }
   }
 
   get collisions() {
