@@ -116,7 +116,7 @@ class Component extends Behavior {
   }
 
   get _objects() {
-    return this.this._objects;
+    return this._instance.objects;
   }
 
   get _tiles() {
@@ -305,9 +305,9 @@ class Scene extends Component {
         // clear rect
         this.action = setInterval(() => {
           this.clear();
-          this._cameras.map((item) => item.launch());
-          this._tiles.map((item) => item.launch());
-          this._objects.map((item) => item.launch());
+          this._cameras.forEach((item) => item?.launch());
+          this._tiles.forEach((item) => item?.launch());
+          this._objects.forEach((item) => item?.launch());
           this._mouse.launch();
 
           this.info();
@@ -432,24 +432,17 @@ class GameObject extends Component {
     const { x, y } = this._pos;
     const list = [];
 
-    this._objects
-      .filter(
-        (item, id) =>
-          item.name !== this.name &&
-          item.type !== "mouse" &&
-          item.type !== "camera"
-      )
-      .forEach((ob) => {
-        const pX1 = ob._pos.x;
-        const pY1 = ob._pos.y;
+    this._objects.forEach((ob) => {
+      const pX1 = ob._pos.x;
+      const pY1 = ob._pos.y;
 
-        const dx = Math.abs(pX1 - x);
-        const dy = Math.abs(pY1 - y);
+      const dx = Math.abs(pX1 - x);
+      const dy = Math.abs(pY1 - y);
 
-        if (Math.sqrt(dx * dx + dy * dy) < range) {
-          list.push(ob);
-        }
-      });
+      if (Math.sqrt(dx * dx + dy * dy) < range) {
+        list.push(ob);
+      }
+    });
 
     return list;
   }

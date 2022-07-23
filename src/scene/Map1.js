@@ -177,7 +177,7 @@ class Tank extends Sprite {
   }
 
   checkEnemy() {
-    const enemyList = this._sensor(this.attRange);
+    const enemyList = this.sensor(this.attRange);
     enemyList.forEach((enemy) => {
       if (enemy.alive) {
         enemy.isAttack = true;
