@@ -10,9 +10,8 @@ const _global = {
   canvas: null,
   ctx: null,
   mouse: null,
+  scene: null,
 };
-
-/// end
 
 function listenEvent(_global, _instance) {
   const { mouse, canvas } = _global;
@@ -143,6 +142,14 @@ class Component extends Behavior {
     return this._global.ctx;
   }
 
+  get _scene() {
+    return this._global.scene;
+  }
+
+  set _scene(scene) {
+    this._global.scene = scene;
+  }
+
   set _ctx(ctx) {
     this._global.ctx = ctx;
   }
@@ -173,8 +180,7 @@ class Component extends Behavior {
     this._vector = { x: 0, y: 0 };
     this.init();
   }
-
-  init(e) {}
+  init() {}
 
   // before life cycle
   beforeDraw(context) {}
@@ -234,6 +240,179 @@ class Component extends Behavior {
     delete this;
   }
 
+  setInfo([key, value]) {
+    console.log(key, value);
+    if (Array.isArray(key)) {
+      const needChange = this[key[0]];
+
+      let i = 1;
+      while (i < key.length) {
+        needChange = needChange[key[i]];
+        i++;
+      }
+      console.log(needChange);
+      needChange = value;
+    } else if (this[key] && value) {
+      this[key] = value;
+    }
+  }
+
+  logInfo() {
+    const ul = document.querySelector("#info");
+    ul.innerHTML = "";
+    const data = JSON.stringify(this);
+    const jsonData = JSON.parse(data);
+
+    Object.entries(jsonData).forEach(([key, value]) => {
+      const li = document.createElement("li");
+      const h4 = document.createElement("h4");
+      const input = document.createElement("input");
+
+      li.id = key;
+      h4.innerHTML = key;
+      h4.style.marginTop = "5px";
+      h4.style.marginBottom = "5px";
+
+      switch (typeof value) {
+        case "boolean":
+          const divB = document.createElement("div");
+          const input1 = document.createElement("input");
+          const input2 = document.createElement("input");
+
+          const label1 = document.createElement("label");
+          const label2 = document.createElement("label");
+
+          const id1 = [key, "true"].join("_");
+          const id2 = [key, "false"].join("_");
+
+          label1.setAttribute("for", id1);
+          label1.innerHTML = "True";
+
+          label2.setAttribute("for", id2);
+          label2.innerHTML = "False";
+
+          input1.name = key;
+          input1.type = "radio";
+          input1.id = id1;
+          input1.defaultChecked = value;
+          input1.value = true;
+
+          input2.name = key;
+          input2.type = "radio";
+          input2.id = id2;
+          input2.defaultChecked = !value;
+          input2.value = false;
+
+          input1.onclick = (e) => {
+            this.setInfo([key, !this[key]]);
+          };
+
+          input2.onclick = (e) => {
+            this.setInfo([key, !this[key]]);
+          };
+
+          divB.style.display = "flex";
+          divB.append(input1, label1, input2, label2);
+
+          li.append(h4, divB);
+          break;
+
+        case "string":
+        case "number":
+          const div = document.createElement("div");
+          const button = document.createElement("button");
+          const type = typeof value === "string" ? "text" : "number";
+
+          input.value = value;
+          input.name = key;
+          input.type = type;
+          input.style.borderColor = type === "number" ? "blue" : "";
+          input.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              this.setInfo([
+                key,
+                input.type === "number" ? parseFloat(input.value) : input.value,
+              ]);
+            }
+          };
+
+          button.innerHTML = "save";
+          button.onclick = () =>
+            this.setInfo([
+              key,
+              input.type === "number" ? parseFloat(input.value) : input.value,
+            ]);
+
+          div.style.display = "flex";
+          div.append(input, button);
+
+          li.append(h4, div);
+          break;
+
+        case "object":
+          const listItem = document.createElement("div");
+          const mapItem =
+            typeof value === "object"
+              ? Object.entries(value)
+              : value.map((item, id) => [id, item]);
+
+          mapItem.map(([chKey, chValue]) => {
+            if (typeof chValue !== "object") {
+              const nInput = document.createElement("input");
+              const container = document.createElement("div");
+              const pItem = document.createElement("p");
+              const button = document.createElement("button");
+              const type = typeof chValue === "string" ? "text" : "number";
+
+              pItem.innerHTML = chKey;
+
+              nInput.value = chValue;
+              nInput.name = [key, chKey].join("_");
+              nInput.type = type;
+              nInput.style.borderColor = type === "number" ? "purple" : "";
+              nInput.onkeydown = ({ key }) => {
+                if (key === "Enter") {
+                  this.setInfo([
+                    nInput,
+                    nInput.type === "number"
+                      ? parseFloat(nInput.value)
+                      : nInput.value,
+                  ]);
+                }
+              };
+
+              button.innerHTML = "save";
+              button.onclick = () =>
+                this.setInfo([
+                  nInput.name.split("_"),
+                  nInput.type === "number"
+                    ? parseFloat(nInput.value)
+                    : nInput.value,
+                ]);
+
+              container.style.display = "flex";
+              container.append(nInput, button);
+              listItem.append(pItem, container);
+            } else {
+              chValue.logInfo();
+            }
+          });
+
+          listItem.id = key;
+          listItem.style.margin = "0px 0px 5px 5px";
+          listItem.style.paddingLeft = "10px";
+
+          li.append(h4, listItem);
+          break;
+
+        default:
+          break;
+      }
+
+      ul.appendChild(li);
+    });
+  }
+
   // clear
   clear() {
     if (this._ctx && this._ctx !== {}) {
@@ -251,12 +430,12 @@ class Scene extends Component {
   selector = {};
   zIndex = 0;
   lastClick = { x: 0, y: 0 };
-  detectList = [];
   time = 0;
   limit = {
     x: this.w,
     y: this.h,
   };
+  type = "scene";
 
   constructor(name, x, y, w, h, s, id) {
     super(name, x, y, w, h, s, id);
@@ -280,7 +459,6 @@ class Scene extends Component {
 
     this._ctx = ctx;
     this._canvas = canvas;
-    this._mouse = new MouseObject("mouse", 0, 0, 0, 0, "mouse1", 0);
   }
 
   // add game object

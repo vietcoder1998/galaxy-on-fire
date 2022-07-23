@@ -42,7 +42,6 @@ class Scene1Controller extends GameController {
 
   onMouseDown(e) {
     const { x, y, down } = this._objects.at(-1);
-    this.detectList = [];
     // detect event in mouse change
 
     if (down) {

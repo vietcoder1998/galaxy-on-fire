@@ -115,9 +115,29 @@ class Tank extends Sprite {
     const detect = detectOver({ x, y, w, h }, [[this._mouse.x, this._mouse.y]]);
 
     if (detect) {
-      this.selected = true;
-    } else {
-      this.selected = false;
+      if (e.which == 2) {
+        this.selected = true;
+      } else {
+        this.selected = true;
+        this.logInfo();
+      }
+    }
+
+    if (this.selected) {
+      drawDashedLine(this._ctx, this._pos.x, this._pos.y, e.clientX, e.clientY);
+
+      this.vector = calculateVector2D(
+        this._pos.x,
+        this._pos.y,
+        e.clientX - this.w / 2,
+        e.clientY - this.h / 2,
+        this.speed
+      );
+
+      this.point = {
+        x: e.clientX,
+        y: e.clientY,
+      };
     }
   }
 
@@ -143,31 +163,6 @@ class Tank extends Sprite {
         this.x += this.vector.x * this.speed;
         this.y += this.vector.y * this.speed;
       }
-    }
-  }
-
-  onMouseDown(e) {
-    if (this.selected) {
-      drawDashedLine(
-        _global.ctx,
-        this._pos.x,
-        this._pos.y,
-        e.clientX,
-        e.clientY
-      );
-
-      this.vector = calculateVector2D(
-        this._pos.x,
-        this._pos.y,
-        e.clientX - this.w / 2,
-        e.clientY - this.h / 2,
-        this.speed
-      );
-
-      this.point = {
-        x: e.clientX,
-        y: e.clientY,
-      };
     }
   }
 

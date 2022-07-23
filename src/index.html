@@ -5,12 +5,57 @@
       body {
         margin: 0px;
       }
+      p {
+        margin: 5px 0px 5px 0px;
+      }
     </style>
   </head>
-  <div style="display: flex">
-    <canvas style="border: 1px" id="defaultGame"></canvas>
-    <div style="border: solid gray 1px; padding: 10px; margin: 10px"></div>
-  </div>
+  <body>
+    <div style="display: flex">
+      <canvas style="border: 1px" id="defaultGame"></canvas>
+      <div
+        style="
+          right: 0px;
+          top: 0px;
+          list-style-type: none;
+          width: 400px;
+          height: 100vh;
+          overflow-y: auto;
+          padding: 10px;
+        "
+        rows="20"
+      >
+        <div>
+          <input
+            id="searchKey"
+            type="search"
+            name="search"
+            placeholder="find element..."
+          />
+        </div>
+        <div id="info"></div>
+      </div>
+    </div>
+  </body>
+  <script>
+    const info = document.querySelector("#info");
+    const ip = document.querySelector("input#searchKey");
+
+    ip.onkeydown = (e) => {
+      const value = ip.value;
+      const children = info.childNodes;
+
+      console.log(ip.value, typeof value)
+      children.forEach((child) => {
+        const name = child.id;
+        if (name.includes(value) || !value || value === "") {
+          child.style.display = "";
+        } else {
+          child.style.display = "none";
+        }
+      });
+    };
+  </script>
   <script src="./engine/drawing.js"></script>
   <script src="./engine/math.js"></script>
   <script src="./engine/index.js"></script>
@@ -19,6 +64,7 @@
 
   <!-- Scene1 -->
   <script src="./scene/1/Bullet.js"></script>
+  <script src="./scene/1/MouseActive.js"></script>
   <script src="./scene/1/Camera.js"></script>
   <script src="./scene/1/Controller.js"></script>
   <script src="./scene/1/Tank.js"></script>
