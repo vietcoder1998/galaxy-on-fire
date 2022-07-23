@@ -7,9 +7,9 @@ const _instance = {
 };
 
 const _global = {
-  canvas: {},
-  ctx: {},
-  mouse: {},
+  canvas: null,
+  ctx: null,
+  mouse: null,
 };
 
 /// end
@@ -19,7 +19,9 @@ function listenEvent(_global, _instance) {
 
   canvas.onmousemove = (e) => {
     Object.entries(_instance).forEach(([key, value]) => {
-      item.onMouseMove(e);
+      if (value) {
+        onMouseMove(e);
+      }
     });
     mouse.onMouseMove(e);
   };
@@ -27,7 +29,9 @@ function listenEvent(_global, _instance) {
   // mouse up
   canvas.onmouseup = (e) => {
     Object.entries(_instance).forEach(([key, value]) => {
-      value.onMouseUp(e);
+      if (value) {
+        onMouseUp(e);
+      }
     });
     mouse.onMouseUp(e);
   };
@@ -35,21 +39,27 @@ function listenEvent(_global, _instance) {
   // mouse down
   canvas.onmousedown = (e) => {
     Object.entries(_instance).forEach(([key, value]) => {
-      value.onMouseDown(e);
+      if (value) {
+        onMouseDown(e);
+      }
     });
     mouse.onMouseDown(e);
   };
 
   document.addEventListener("keyup", (e) => {
     Object.entries(_instance).forEach(([key, value]) => {
-      value.onKeyUp(e);
+      if (value) {
+        onKeyUp(e);
+      }
     });
     mouse.onKeyDown(e);
   });
 
   document.addEventListener("keydown", (e) => {
     Object.entries(_global).forEach(([key, value]) => {
-      value.onKeyDown(e);
+      if (value) {
+        onKeyDown(e);
+      }
     });
     mouse.onKeyDown(e);
   });
@@ -101,19 +111,19 @@ class Component extends Behavior {
     return _global;
   }
 
-  get _camera() {
+  get _cameras() {
     return this._instance.cameras;
   }
 
   get _objects() {
-    return this._instance.objects;
+    return this.this._objects;
   }
 
   get _tiles() {
     return this._instance.tiles;
   }
 
-  get _controller() {
+  get _controllers() {
     return this._instance.controllers;
   }
 
@@ -121,12 +131,24 @@ class Component extends Behavior {
     return this._global.canvas;
   }
 
+  set _canvas(canvas) {
+    this._global.canvas = canvas;
+  }
+
   get _mouse() {
     return this._global.mouse;
   }
 
+  set _mouse(mouse) {
+    this._global.mouse = mouse;
+  }
+
   get _ctx() {
     return this._global.ctx;
+  }
+
+  set _ctx(ctx) {
+    this._global.ctx = ctx;
   }
 
   get _pos() {
@@ -210,7 +232,6 @@ class Component extends Behavior {
 
   // clear
   clear() {
-    console.log(this._ctx)
     if (this._ctx && this._ctx !== {}) {
       this._ctx.clearRect(this.x, this.y, this.w, this.h);
     }
@@ -253,22 +274,18 @@ class Scene extends Component {
     canvas.style.top = this.x + "px";
     canvas.style.left = this.y + "px";
 
-    this._instance.mouse = new MouseObject("mouse", 0, 0, 0, 0, "mouse1", 0);
-    this._instance.ctx = ctx;
-    this._instance.canvas = canvas;
+    this._ctx = ctx;
+    this._canvas = canvas;
+    this._mouse = new MouseObject("mouse", 0, 0, 0, 0, "mouse1", 0);
   }
 
   // add game object
   add(ob, name) {
-    if (Object.keys(_global).includes(name)) {
-      Object.assign(ob, {
-        pid: this.id,
-        ctx: this._ctx,
-        canvas: _instance.canvas,
-      });
-      _global[name].push(ob);
+    if (Object.keys(_instance).includes(name)) {
+      this._instance[name].push(ob);
     }
 
+    console.log(this._global, this._instance);
     listenEvent(this._global, this._instance);
   }
 
@@ -348,11 +365,11 @@ class GameController extends Component {
 
   collisions() {
     const list = [];
-    _instance.objectsobjects.forEach((ob, id) => {
+    this._objects.forEach((ob, id) => {
       const pX = ob._pos.x;
       const pY = ob._pos.y;
 
-      _instance.objectsobjects.forEach((ob1, id1) => {
+      this._objects.forEach((ob1, id1) => {
         const pX1 = ob1._pos.x;
         const pY1 = ob1._pos.y;
         const dx = Math.abs(pX1 - pX);
@@ -415,7 +432,7 @@ class GameObject extends Component {
     const { x, y } = this._pos;
     const list = [];
 
-    _instance.objectsobjects
+    this._objects
       .filter(
         (item, id) =>
           item.name !== this.name &&

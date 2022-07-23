@@ -102,13 +102,13 @@ class Tile extends GameObject {
 
   draw() {
     if (this.dImage && this.dImage.src && this.imgs.length > 0) {
-      this.ctx.drawImage(this.dImage.src, init.x);
+      this._ctx.drawImage(this.dImage.src, init.x);
     } else {
       // fill rects
       if (this.selected) {
-        drawSquare(this.ctx, this.x, this.y, this.w, this.h, "#4eff0070");
+        drawSquare(this._ctx, this.x, this.y, this.w, this.h, "#4eff0070");
       } else {
-        drawSquare(this.ctx, this.x, this.y, this.w, this.h, "#4D118210");
+        drawSquare(this._ctx, this.x, this.y, this.w, this.h, "#4D118210");
       }
 
       if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
@@ -161,11 +161,11 @@ class TitleMap extends GameObject {
 
   draw() {
     if (this.dImage && this.dImage.src && this.imgs.length > 0) {
-      this.ctx.drawImage(this.dImage.src, init.x);
+      this._ctx.drawImage(this.dImage.src, init.x);
     } else {
       // fill rects
-      this.ctx.fillStyle = "#4eff0010";
-      this.ctx.fillRect(this.ctx, this.x, this.y, this.w, this.h);
+      this._ctx.fillStyle = "#4eff0010";
+      this._ctx.fillRect(this._ctx, this.x, this.y, this.w, this.h);
 
       if (this.tiles && this.tiles.length > 0) {
         this.tiles.forEach((tileRow) => {

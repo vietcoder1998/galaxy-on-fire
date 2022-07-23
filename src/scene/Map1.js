@@ -41,12 +41,12 @@ class Scene1Controller extends GameController {
   }
 
   onMouseDown(e) {
-    const { x, y, down } = _instance.objectsobjects.at(-1);
+    const { x, y, down } = this._objects.at(-1);
     this.detectList = [];
     // detect event in mouse change
 
     if (down) {
-      _instance.objectsobjects?.slice(0, -2).forEach((ob) => {
+      this._objects?.slice(0, -2).forEach((ob) => {
         const minX = ob.x;
         const maxX = ob.x + ob.w;
         const minY = ob.y;
