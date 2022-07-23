@@ -3,17 +3,17 @@ const tank2 = new Tank("tank2", 180, 300, 30, 30, 20, "tank2");
 const tank3 = new Tank("tank3", 300, 360, 30, 30, 20, "tank3");
 const enemy = new Tank("tank4", 600, 400, 30, 30, 20, "tank4");
 const map = new TitleMap("tile_map", 20, 20, 1000, 1000, "game1", 50, 50);
-enemy.color = "red";
 
+enemy.color = "red";
 tank1.speed = 1;
 tank2.speed = 1.5;
 tank3.speed = 2;
+tank3.attRange = 160;
 
 const camera = new Camera("camera", 50, 50, 800, 600, "camera1");
 const gameController = new Scene1Controller();
 
 const scene = new Scene("game_play", 0, 0, 2000, 2000, "game1");
-tank3.attRange = 160;
 
 scene.addList([tank1, tank2, tank3, enemy], "objects");
 scene.addList([camera], "cameras");

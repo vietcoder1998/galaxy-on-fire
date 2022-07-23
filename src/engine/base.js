@@ -18,47 +18,51 @@ function listenEvent(_global, _instance) {
   const { mouse, canvas } = _global;
 
   canvas.onmousemove = (e) => {
-    Object.entries(_instance).forEach(([key, value]) => {
-      if (value) {
-        onMouseMove(e);
+    Object.values(_instance).forEach((value) => {
+      if (value && value.length > 0) {
+        value.forEach((item) => item?.onMouseMove(e));
       }
     });
+
     mouse.onMouseMove(e);
   };
 
   // mouse up
   canvas.onmouseup = (e) => {
-    Object.entries(_instance).forEach(([key, value]) => {
-      if (value) {
-        onMouseUp(e);
+    Object.values(_instance).forEach((value) => {
+      if (value && value.length > 0) {
+        value.forEach((item) => item?.onMouseUp(e));
       }
     });
+
     mouse.onMouseUp(e);
   };
 
   // mouse down
   canvas.onmousedown = (e) => {
-    Object.entries(_instance).forEach(([key, value]) => {
-      if (value) {
-        onMouseDown(e);
+    Object.values(_instance).forEach((value) => {
+      if (value && value.length > 0) {
+        value.forEach((item) => item.onMouseDown(e));
       }
     });
+
     mouse.onMouseDown(e);
   };
 
   document.addEventListener("keyup", (e) => {
-    Object.entries(_instance).forEach(([key, value]) => {
-      if (value) {
-        onKeyUp(e);
+    Object.values(_instance).forEach((value) => {
+      if (value && value.length > 0) {
+        value.forEach((item) => item.onKeyUp(e));
       }
     });
+
     mouse.onKeyDown(e);
   });
 
   document.addEventListener("keydown", (e) => {
-    Object.entries(_global).forEach(([key, value]) => {
-      if (value) {
-        onKeyDown(e);
+    Object.values(_global).forEach((value) => {
+      if (value && value.length > 0) {
+        value.onKeyDown(e);
       }
     });
     mouse.onKeyDown(e);
@@ -78,12 +82,7 @@ class Behavior {
   onKeyDown(e) {}
   onKeyUp(e) {}
   onMouseUp(e) {}
-  init(e) {}
   keyListen = [];
-
-  constructor() {
-    this.init();
-  }
 }
 class Component extends Behavior {
   x;
@@ -175,7 +174,10 @@ class Component extends Behavior {
     this.id = id;
     this.s = s;
     this._vector = { x: 0, y: 0 };
+    this.init();
   }
+
+  init(e) {}
 
   // before life cycle
   beforeDraw(context) {}
@@ -284,9 +286,6 @@ class Scene extends Component {
     if (Object.keys(_instance).includes(name)) {
       this._instance[name].push(ob);
     }
-
-    console.log(this._global, this._instance);
-    listenEvent(this._global, this._instance);
   }
 
   addList(list, name) {
@@ -299,6 +298,9 @@ class Scene extends Component {
 
   // render ( only scene render)
   render() {
+    console.log(this._global, this._canvas);
+    listenEvent(this._global, this._instance);
+
     try {
       // render view
       if (!this.stop && this._global && this._instance) {
