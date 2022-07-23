@@ -3,7 +3,7 @@ const tank2 = new Tank("tank2", 180, 300, 30, 30, 20, "tank2");
 const tank3 = new Tank("tank3", 300, 360, 30, 30, 20, "tank3");
 const enemy = new Tank("tank4", 600, 400, 30, 30, 20, "tank4");
 const map = new TitleMapScene1("tile_map", 20, 20, 800, 800, "game1", 50, 50);
-
+map.setTile([20, 20]);
 enemy.color = "red";
 tank1.speed = 1;
 tank2.speed = 1.5;
