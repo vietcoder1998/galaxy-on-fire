@@ -10,15 +10,16 @@ tank2.speed = 1.5;
 tank3.speed = 2;
 
 const camera = new Camera("camera", 50, 50, 800, 600, "camera1");
-const mouse = new MouseObject("mouse1", 0, 0, 0, 0);
 const gameController = new Scene1Controller();
 
 const scene = new Scene("game_play", 0, 0, 2000, 2000, "game1");
 tank3.attRange = 160;
-scene._controller = gameController;
-scene._camera = camera;
 
-gameController.addList(mouse, tank1, tank2, tank3, enemy, map, camera);
+scene.addList([tank1, tank2, tank3, enemy], "objects");
+scene.addList([camera], "cameras");
+scene.addList([map], "tiles");
+scene.addList([gameController], "controllers");
+
 
 scene.fps = 44;
 scene.render();

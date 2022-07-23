@@ -1,5 +1,62 @@
-const obList = [];
+/// _global define
+const _instance = {
+  objects: [],
+  tiles: [],
+  cameras: [],
+  controllers: [],
+};
+
+const _global = {
+  canvas: {},
+  ctx: {},
+  mouse: {},
+};
+
+/// end
+
+function listenEvent(_global, _instance) {
+  const { mouse, canvas } = _global;
+
+  canvas.onmousemove = (e) => {
+    Object.entries(_instance).forEach(([key, value]) => {
+      item.onMouseMove(e);
+    });
+    mouse.onMouseMove(e);
+  };
+
+  // mouse up
+  canvas.onmouseup = (e) => {
+    Object.entries(_instance).forEach(([key, value]) => {
+      value.onMouseUp(e);
+    });
+    mouse.onMouseUp(e);
+  };
+
+  // mouse down
+  canvas.onmousedown = (e) => {
+    Object.entries(_instance).forEach(([key, value]) => {
+      value.onMouseDown(e);
+    });
+    mouse.onMouseDown(e);
+  };
+
+  document.addEventListener("keyup", (e) => {
+    Object.entries(_instance).forEach(([key, value]) => {
+      value.onKeyUp(e);
+    });
+    mouse.onKeyDown(e);
+  });
+
+  document.addEventListener("keydown", (e) => {
+    Object.entries(_global).forEach(([key, value]) => {
+      value.onKeyDown(e);
+    });
+    mouse.onKeyDown(e);
+  });
+}
+
 ///
+
 class Behavior {
   /**
    * @param {MouseEvent} e
@@ -12,13 +69,9 @@ class Behavior {
   onKeyUp(e) {}
   onMouseUp(e) {}
   init(e) {}
-
-  obList = [];
   keyListen = [];
 
   constructor() {
-    this.canvas = document.querySelector("canvas#defaultGame");
-    this.ctx = this.canvas.getContext("2d");
     this.init();
   }
 }
@@ -39,11 +92,41 @@ class Component extends Behavior {
   instance;
   dImage;
   imgs = [];
-  obList = [];
-  collisions = [];
 
   get _instance() {
-    return this.instance;
+    return _instance;
+  }
+
+  get _global() {
+    return _global;
+  }
+
+  get _camera() {
+    return this._instance.cameras;
+  }
+
+  get _objects() {
+    return this._instance.objects;
+  }
+
+  get _tiles() {
+    return this._instance.tiles;
+  }
+
+  get _controller() {
+    return this._instance.controllers;
+  }
+
+  get _canvas() {
+    return this._global.canvas;
+  }
+
+  get _mouse() {
+    return this._global.mouse;
+  }
+
+  get _ctx() {
+    return this._global.ctx;
   }
 
   get _pos() {
@@ -70,11 +153,7 @@ class Component extends Behavior {
     this.id = id;
     this.s = s;
     this._vector = { x: 0, y: 0 };
-
-    this.init();
   }
-
-  init() {}
 
   // before life cycle
   beforeDraw(context) {}
@@ -85,16 +164,13 @@ class Component extends Behavior {
   // action in draw
   draw(context, cb) {
     if (this.dImage && this.dImage.src && this.imgs.length > 0) {
-      this.ctx.drawImage(this.dImage.src, init.x);
+      this._ctx.drawImage(this.dImage.src, init.x);
     } else {
-      // fill color for background
-      this.ctx.fillStyle = this.color;
-
-      // fill rects
-      this.ctx.fillRect(this.x, this.y, this.w, this.h);
+      this._ctx.fillStyle = this.color;
+      this._ctx.fillRect(this.x, this.y, this.w, this.h);
 
       if (this.selected) {
-        drawCircle(this.ctx, this._pos.x, this._pos.y, this.s, "#4eff1080");
+        drawCircle(this._ctx, this._pos.x, this._pos.y, this.s, "#4eff1080");
       }
 
       if (this.imgs.length && this.dImage.pos >= this.imgs.length) {
@@ -127,13 +203,17 @@ class Component extends Behavior {
       throw error;
     }
   }
-  destroy(e) {
+
+  destroy() {
     delete this;
   }
 
   // clear
-  clear(context) {
-    this.ctx.clearRect(this.x, this.y, this.w, this.h);
+  clear() {
+    console.log(this._ctx)
+    if (this._ctx && this._ctx !== {}) {
+      this._ctx.clearRect(this.x, this.y, this.w, this.h);
+    }
   }
 }
 
@@ -148,23 +228,10 @@ class Scene extends Component {
   lastClick = { x: 0, y: 0 };
   detectList = [];
   time = 0;
-  controller = {};
-  camera = {};
   limit = {
     x: this.w,
     y: this.h,
   };
-
-  set _controller(controller) {
-    controller.ctx = this.ctx;
-    controller.scene = this;
-    this.controller = controller;
-  }
-
-  set _camera(camera) {
-    camera.ctx = this.ctx;
-    this.camera = camera;
-  }
 
   constructor(name, x, y, w, h, s, id) {
     super(name, x, y, w, h, s, id);
@@ -178,31 +245,58 @@ class Scene extends Component {
   }
 
   init() {
+    const canvas = document.querySelector("canvas#defaultGame");
+    const ctx = canvas.getContext("2d");
     // init canvas
-    this.canvas.width = this.w;
-    this.canvas.height = this.h;
-    this.canvas.style.top = this.x + "px";
-    this.canvas.style.left = this.y + "px";
+    canvas.width = this.w;
+    canvas.height = this.h;
+    canvas.style.top = this.x + "px";
+    canvas.style.left = this.y + "px";
+
+    this._instance.mouse = new MouseObject("mouse", 0, 0, 0, 0, "mouse1", 0);
+    this._instance.ctx = ctx;
+    this._instance.canvas = canvas;
+  }
+
+  // add game object
+  add(ob, name) {
+    if (Object.keys(_global).includes(name)) {
+      Object.assign(ob, {
+        pid: this.id,
+        ctx: this._ctx,
+        canvas: _instance.canvas,
+      });
+      _global[name].push(ob);
+    }
+
+    listenEvent(this._global, this._instance);
+  }
+
+  addList(list, name) {
+    if (list && list.length > 0) {
+      list.map((item) => {
+        this.add(item, name);
+      });
+    }
   }
 
   // render ( only scene render)
   render() {
     try {
       // render view
-      if (!this.stop && this.ctx) {
+      if (!this.stop && this._global && this._instance) {
         // clear rect
         this.action = setInterval(() => {
           this.clear();
-          this.camera?.launch();
-          if (this.controller && this.controller.obList.length > 0) {
-            this.controller?.obList?.map((item) => {
-              item && item.launch();
-            });
-          }
+          this._cameras.map((item) => item.launch());
+          this._tiles.map((item) => item.launch());
+          this._objects.map((item) => item.launch());
+          this._mouse.launch();
+
           this.info();
         }, 1000 / this.fps);
       } else {
-        if (!this.ctx) {
+        if (!this._ctx) {
           console.log("Game CTX need be to define");
         }
 
@@ -226,21 +320,19 @@ class Scene extends Component {
     }
     this.timeMachine = new Date().toLocaleDateString();
 
-    this.ctx.font = 20;
-    this.ctx.fillStyle = "black";
+    this._ctx.font = 20;
+    this._ctx.fillStyle = "black";
 
     // fill frame
-    this.ctx.fillText("frame:" + this.frame, this.w - 100, 20);
-    this.ctx.fillText("fps:" + this.fps, this.w - 100, 40);
-    this.ctx.fillText("time: " + this.time, this.w - 100, 60);
-    this.ctx.fillText("date: " + this.timeMachine, this.w - 100, 80);
+    this._ctx.fillText("frame:" + this.frame, this.w - 100, 20);
+    this._ctx.fillText("fps:" + this.fps, this.w - 100, 40);
+    this._ctx.fillText("time: " + this.time, this.w - 100, 60);
+    this._ctx.fillText("date: " + this.timeMachine, this.w - 100, 80);
   }
 }
 
 // Controller
 class GameController extends Component {
-  obList = [new MouseObject("mouse", 0, 0, 0, 0, "mouse1", 0)];
-  collision = [];
   type = "mouse";
 
   constructor(name, x, y, w, h, s, id) {
@@ -254,94 +346,15 @@ class GameController extends Component {
     this.s = s;
   }
 
-  init() {
-    this.canvas.onmousemove = (e) => {
-      this.obList.forEach((ob, i) => {
-        if (ob?.type === "tilemap" || i <= this.obList.length - 1) {
-          ob?.tiles &&
-            ob?.tiles?.length > 0 &&
-            ob.tiles?.forEach((tiles) => {
-              tiles?.forEach((tile) => {
-                tile?.onMouseMove(e, this.obList.at(-1));
-              });
-            });
-        } else {
-          ob.onMouseMove(ob);
-        }
-      });
-
-      this.onMouseMove(e);
-    };
-
-    this.canvas.onmouseup = (e) => {
-      this.obList.forEach((ob) => {
-        ob.onMouseUp(e);
-      });
-      this.onMouseUp(e);
-    };
-
-    this.canvas.onmousedown = (e) => {
-      this.obList.forEach((ob, i) => {
-        if (ob?.type === "tilemap" || i<= this.obList.length - 1) {
-          ob?.tiles &&
-            ob?.tiles?.length > 0 &&
-            ob.tiles?.forEach((tiles) => {
-              tiles?.forEach((tile) => {
-                tile.onMouseDown(e, this.obList.at(-1));
-              });
-            });
-        } else {
-          ob.onMouseMove(ob);
-        }
-      });
-      this.onMouseDown(e);
-    };
-
-    document.addEventListener("keydown", (e) => {
-      this.obList.forEach((ob) => {
-        ob.onKeyDown(e);
-      });
-      this.onKeyDown(e);
-    });
-
-    document.addEventListener("keydown", (e) => {
-      this.obList.forEach((ob) => {
-        ob.onKeyUp(e);
-      });
-
-      this.onKeyUp(e);
-    });
-  }
-
-  // add game object
-  add(ob, name) {
-    Object.assign(ob, {
-      parentId: this.id,
-      root: { x: this.x, y: this.y },
-      ob: this.ctx,
-      pid: this.obList.length,
-    });
-    this.obList.unshift(ob);
-    obList.push(ob);
-  }
-
-  // add multiple game object
-  addList(...args) {
-    if (args && args.length > 0) {
-      args.forEach((ob) => this.add(ob));
-    }
-  }
-
-  collision() {
+  collisions() {
     const list = [];
-    this.obList.splice(0, -2).forEach((ob, id) => {
+    _instance.objectsobjects.forEach((ob, id) => {
       const pX = ob._pos.x;
       const pY = ob._pos.y;
 
-      this.obList.splice(0, -2).forEach((ob1, id1) => {
+      _instance.objectsobjects.forEach((ob1, id1) => {
         const pX1 = ob1._pos.x;
         const pY1 = ob1._pos.y;
-
         const dx = Math.abs(pX1 - pX);
         const dy = Math.abs(pY1 - pY);
 
@@ -398,32 +411,11 @@ class GameObject extends Component {
     this.s = s;
   }
 
-  _collision() {
+  sensor(range) {
     const { x, y } = this._pos;
     const list = [];
 
-    obList
-      .filter((item) => item.name !== this.name)
-      .forEach((ob) => {
-        const pX1 = ob.x;
-        const pY1 = ob.y;
-
-        const dx = Math.abs(pX1 - x);
-        const dy = Math.abs(pY1 - y);
-
-        if (Math.sqrt(dx * dx + dy * dy) < ob.s + ob.s) {
-          list.push(ob);
-        }
-      });
-
-    return list;
-  }
-
-  _sensor(range) {
-    const { x, y } = this._pos;
-    const list = [];
-
-    obList
+    _instance.objectsobjects
       .filter(
         (item, id) =>
           item.name !== this.name &&
@@ -443,5 +435,55 @@ class GameObject extends Component {
       });
 
     return list;
+  }
+}
+
+class MouseObject extends Component {
+  zIndex = 999;
+  selected = false;
+  down = false;
+  type = "mouse";
+
+  constructor(name, x, y, w, h, s, id) {
+    super(name, x, y, w, h, s, id);
+    this.name = name;
+    this.id = id;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.s = s;
+  }
+
+  onMouseDown(e) {
+    this.x = e.clientX;
+    this.y = e.clientY;
+    this.w = 0;
+    this.h = 0;
+
+    this.down = true;
+  }
+
+  onMouseMove(e) {
+    if (this.down) {
+      this.w = e.clientX - this.x;
+      this.h = e.clientY - this.y;
+    }
+  }
+
+  onMouseUp(e) {
+    this.w = 0;
+    this.h = 0;
+
+    this.down = false;
+  }
+
+  draw(context) {
+    if (!this.down) {
+      this.clear();
+      drawX(this._ctx, this.x - 10, this.y - 10, 10, 3);
+    } else {
+      drawRawSelected(this._ctx, this.x, this.y, this.w, this.h);
+    }
   }
 }

@@ -3,13 +3,15 @@
 // Game controller
 class Scene1Controller extends GameController {
   onMouseMove(e) {
-    const { x, y, w, h, down } = this.obList.at(-1);
+    const { x, y, w, h, down } = _global.mouse
+    const { objects } = this._instance;
 
     if (down) {
-      this.obList?.slice(0, -2).forEach((ob) => {
+      objects?.forEach((ob) => {
         const tX = x + w;
         const tY = y + h;
 
+        // map
         const minX = tX > x ? x : tX;
         const maxX = tX < x ? x : tX;
 
@@ -39,12 +41,12 @@ class Scene1Controller extends GameController {
   }
 
   onMouseDown(e) {
-    const { x, y, down } = this.obList.at(-1);
+    const { x, y, down } = _instance.objectsobjects.at(-1);
     this.detectList = [];
     // detect event in mouse change
 
     if (down) {
-      this.obList?.slice(0, -2).forEach((ob) => {
+      _instance.objectsobjects?.slice(0, -2).forEach((ob) => {
         const minX = ob.x;
         const maxX = ob.x + ob.w;
         const minY = ob.y;
@@ -157,9 +159,9 @@ class Tank extends Sprite {
   loop() {
     if (this.alive) {
       if (this.selected || this.isAttack) {
-        drawHealth(this.ctx, this.x, this.y - 20, this.percent);
+        drawHealth(_global.ctx, this.x, this.y - 20, this.percent);
         drawCircle(
-          this.ctx,
+          _global.ctx,
           this._pos.x,
           this._pos.y,
           this.attRange,
@@ -237,7 +239,13 @@ class Tank extends Sprite {
 
   onMouseDown(e) {
     if (this.selected) {
-      drawDashedLine(this.ctx, this._pos.x, this._pos.y, e.clientX, e.clientY);
+      drawDashedLine(
+        _global.ctx,
+        this._pos.x,
+        this._pos.y,
+        e.clientX,
+        e.clientY
+      );
 
       this.vector = calculateVector2D(
         this._pos.x,
@@ -284,56 +292,6 @@ class Tank extends Sprite {
 
     if (this.keyListen.includes("a") && this.keyListen.includes("Meta")) {
       this.selected = true;
-    }
-  }
-}
-
-class MouseObject extends Component {
-  zIndex = 999;
-  selected = false;
-  down = false;
-  type = "mouse";
-
-  constructor(name, x, y, w, h, s, id) {
-    super(name, x, y, w, h, s, id);
-    this.name = name;
-    this.id = id;
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.s = s;
-  }
-
-  onMouseDown(e) {
-    this.x = e.clientX;
-    this.y = e.clientY;
-    this.w = 0;
-    this.h = 0;
-
-    this.down = true;
-  }
-
-  onMouseMove(e) {
-    if (this.down) {
-      this.w = e.clientX - this.x;
-      this.h = e.clientY - this.y;
-    }
-  }
-
-  onMouseUp(e) {
-    this.w = 0;
-    this.h = 0;
-
-    this.down = false;
-  }
-
-  draw(context) {
-    if (!this.down) {
-      this.clear();
-      drawX(this.ctx, this.x - 10, this.y - 10, 10, 3);
-    } else {
-      drawRawSelected(this.ctx, this.x, this.y, this.w, this.h);
     }
   }
 }
