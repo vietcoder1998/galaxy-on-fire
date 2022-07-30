@@ -2,7 +2,7 @@
 class Bullet extends Sprite {
   type = "sprite";
   speed = 2;
-  vector = {
+  velocity = {
     x: 0,
     y: 0,
   };
@@ -34,15 +34,15 @@ class Bullet extends Sprite {
   }
 
   move() {
-    if (this.gravity && this.vector) {
-      this.y += this.vector.y;
-      this.vector.y += this.gravity;
+    if (this.gravity && this.velocity) {
+      this.y += this.velocity.y;
+      this.velocity.y += this.gravity;
     }
 
-    if (this.vector && this.speed) {
-      // moving with vector
-      this.x += this.vector.x * this.speed;
-      this.y += this.vector.y * this.speed;
+    if (this.velocity && this.speed) {
+      // moving with velocity
+      this.x += this.velocity.x * this.speed;
+      this.y += this.velocity.y * this.speed;
     }
   }
 }

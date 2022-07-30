@@ -1,6 +1,6 @@
 class Tank extends Sprite {
   speed = 2;
-  vector = {
+  velocity = {
     x: 0,
     y: 0,
   };
@@ -88,7 +88,7 @@ class Tank extends Sprite {
   shoot(enemy) {
     const bullet = new Bullet("", this._pos.x, this._pos.y, 1, 1, "", 2);
     bullet.color = "yellow";
-    bullet.vector = calculateVector2D(
+    bullet.velocity = calculatevelocity2D(
       this._pos.x,
       this._pos.y,
       enemy._pos.x,
@@ -126,7 +126,7 @@ class Tank extends Sprite {
     if (this.selected) {
       drawDashedLine(this._ctx, this._pos.x, this._pos.y, e.clientX, e.clientY);
 
-      this.vector = calculateVector2D(
+      this.velocity = calculatevelocity2D(
         this._pos.x,
         this._pos.y,
         e.clientX - this.w / 2,
@@ -148,20 +148,20 @@ class Tank extends Sprite {
       this.y <= this.point.y &&
       this.point.y <= this.y + 2 * this.h
     ) {
-      this.vector = {
+      this.velocity = {
         x: 0,
         y: 0,
       };
     } else {
-      if (this.gravity && this.vector) {
-        this.y += this.vector.y;
-        this.vector.y += this.gravity;
+      if (this.gravity && this.velocity) {
+        this.y += this.velocity.y;
+        this.velocity.y += this.gravity;
       }
 
-      if (this.vector && this.speed) {
-        // moving with vector
-        this.x += this.vector.x * this.speed;
-        this.y += this.vector.y * this.speed;
+      if (this.velocity && this.speed) {
+        // moving with velocity
+        this.x += this.velocity.x * this.speed;
+        this.y += this.velocity.y * this.speed;
       }
     }
   }
@@ -176,7 +176,7 @@ class Tank extends Sprite {
     }
 
     if (e.key === "s") {
-      this.vector = {
+      this.velocity = {
         x: 0,
         y: 0,
       };
@@ -184,7 +184,7 @@ class Tank extends Sprite {
 
     if (e.key === "Escape") {
       this.selected = false;
-      this.vector = {
+      this.velocity = {
         x: 0,
         y: 0,
       };

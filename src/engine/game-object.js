@@ -211,3 +211,10 @@ class UI extends GameObject {
     drawRawSelected(this._ctx, this.x, this.y, this.w, this.h);
   }
 }
+
+class Button extends GameObject {
+  borderColor = "red";
+  binding() {
+    drawRawSelected(this._ctx, this.x, this.y, this.w, this.h);
+  }
+}

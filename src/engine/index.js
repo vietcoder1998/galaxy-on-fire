@@ -13,6 +13,26 @@ const _global = {
   scene: null,
 };
 
+// filter action
+const info_game = document.querySelector("#info");
+const search_node = document.querySelector("input#searchKey");
+
+search_node.onkeydown = (e) => filterInput();
+
+function filterInput() {
+  const value = search_node.value;
+  const children = info_game.childNodes;
+
+  children.forEach((child) => {
+    const name = child.id;
+    if (name.includes(value) || !value || value === "") {
+      child.style.display = "";
+    } else {
+      child.style.display = "none";
+    }
+  });
+}
+
 function listenEvent(_global, _instance) {
   const { mouse, canvas } = _global;
 
@@ -64,9 +84,7 @@ function listenEvent(_global, _instance) {
     });
   });
 }
-
 ///
-
 class Behavior {
   /**
    * @param {MouseEvent} e
@@ -87,7 +105,7 @@ class Component extends Behavior {
   h;
   s;
   id;
-  vector = {
+  velocity = {
     x: 0,
     y: 0,
   };
@@ -161,10 +179,14 @@ class Component extends Behavior {
     };
   }
 
-  set _vector(vector) {
-    this.vector = {
-      x: vector.x ?? 0,
-      y: vector.y ?? 0,
+  set _pos(pos) {
+    (this.x = pos - this.w / 2), (this.y = pos - this.h / 2);
+  }
+
+  set _velocity(velocity) {
+    this.velocity = {
+      x: velocity.x ?? 0,
+      y: velocity.y ?? 0,
     };
   }
 
@@ -177,7 +199,7 @@ class Component extends Behavior {
     this.h = h;
     this.id = id;
     this.s = s;
-    this._vector = { x: 0, y: 0 };
+    this._velocity = { x: 0, y: 0 };
     this.init();
   }
   init() {}
@@ -241,17 +263,17 @@ class Component extends Behavior {
   }
 
   setInfo([key, value]) {
-    if (Array.isArray(key)) {
+    if (Array.isArray(key) && key.length === 2) {
       if (this && this[key[0]]) {
-        console.table(this);
-        const t = this[key[0]];
-        Object.assign(t, { [key[1]]: value });
+        this[[key[0]]][key[1]];
       }
     } else {
       if (this[key] && value) {
         this[key] = value;
       }
     }
+
+    this.logInfo();
   }
 
   logInfo() {
@@ -391,7 +413,9 @@ class Component extends Behavior {
               container.append(nInput, button);
               listItem.append(pItem, container);
             } else {
-              chValue.logInfo();
+              if (typeof chValue === "object" && chValue["logInfo"]) {
+                chValue.logInfo();
+              }
             }
           });
 
@@ -408,6 +432,8 @@ class Component extends Behavior {
 
       ul.appendChild(li);
     });
+
+    filterInput();
   }
 
   // clear
@@ -433,7 +459,6 @@ class Scene extends Component {
     y: this.h,
   };
   type = "scene";
-
   constructor(name, x, y, w, h, s, id) {
     super(name, x, y, w, h, s, id);
     this.name = name;
@@ -443,19 +468,6 @@ class Scene extends Component {
     this.h = h;
     this.id = id;
     this.s = s;
-  }
-
-  init() {
-    const canvas = document.querySelector("canvas#defaultGame");
-    const ctx = canvas.getContext("2d");
-    // init canvas
-    canvas.width = this.w;
-    canvas.height = this.h;
-    canvas.style.top = this.x + "px";
-    canvas.style.left = this.y + "px";
-
-    this._ctx = ctx;
-    this._canvas = canvas;
   }
 
   // add game object
@@ -475,19 +487,27 @@ class Scene extends Component {
 
   // render ( only scene render)
   render() {
-    console.log(this._global, this._instance);
+    // add listen event
+    console.log(this._global, this._instance)
     listenEvent(this._global, this._instance);
 
     try {
       // render view
-      if (!this.stop && this._global && this._instance) {
+      if (!this.stop) {
         // clear rect
         this.action = setInterval(() => {
           this.clear();
-          this._tiles.forEach((item) => item?.launch());
-          this._objects.forEach((item) => item?.launch());
-          this._mouse.launch();
-          this._cameras.forEach((item) => item?.launch());
+          this._tiles.forEach((item) => {
+            item.launch();
+          });
+          this._objects.forEach((item) => {
+            item.launch();
+          });
+          this._cameras.forEach((item) => {
+            item.launch();
+          });
+
+          this._mouse && this._mouse.launch();
 
           this.info();
         }, 1000 / this.fps);
@@ -570,7 +590,7 @@ class GameObject extends Component {
   r = 0;
   fps;
   type;
-  vector = {
+  velocity = {
     x: 0,
     y: 0,
   };
@@ -606,23 +626,35 @@ class GameObject extends Component {
 
   binding() {
     if (this.gravity) {
-      this.y += this.vector.y;
-      this.vector.y += this.gravity;
+      this.y += this.velocity.y;
+      this.velocity.y += this.gravity;
     }
+
+    this.checkCollision();
   }
 
-  get collisions() {
-    const results = [];
-    this._objects.filter(item.name !== this.name).forEach((ob) => {
-      const pX1 = ob._pos.x;
-      const pY1 = ob._pos.y;
-      const dx = Math.abs(pX1 - x);
-      const dy = Math.abs(pY1 - y);
+  handleOnCollision(cpX, cpY) {
+    this.x -= cpX;
+    this.y -= cpY;
 
-      if (Math.sqrt(dx * dx + dy * dy) < range) {
-        results.push(ob);
-      }
-    });
+    this._velocity = { x: 0, y: 0 };
+  }
+
+  checkCollision() {
+    const results = [];
+    this._objects
+      .filter((item) => item.name !== this.name)
+      .forEach((ob) => {
+        const dx = Math.abs(ob._pos.x - this._pos.x);
+        const dy = Math.abs(ob._pos.y - this._pos.y);
+
+        if (Math.sqrt(dx * dx + dy * dy) < Math.abs(ob.s + this.s) + 2) {
+          this.handleOnCollision(
+            this._pos.x < ob._pos.x,
+            this._pos.y < ob._pos.y
+          );
+        }
+      });
 
     return results;
   }
