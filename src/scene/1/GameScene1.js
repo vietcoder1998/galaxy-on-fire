@@ -34,9 +34,9 @@ class GameScene1 extends Scene {
     const enemy = new Tank("tank4", 600, 400, 30, 30, 20, "tank4");
     const dashboard = new DashboardUI(
       "dashboard",
-      50,
       500,
-      700,
+      500,
+      250,
       200,
       20,
       "tank4"
@@ -66,12 +66,27 @@ class GameScene1 extends Scene {
     this._mouse = mouse;
     this._scene = this;
 
-    console.log(this._instance, this._global);
-
     this.addList([dashboard, tank1, tank2, tank3, enemy], "objects");
     this.addList([camera], "cameras");
     this.addList([map], "tiles");
     this.addList([gameController], "controllers");
+
+    // add function button
+    const moveButton = new FunctionButton();
+    moveButton.w = 20;
+    moveButton.h = 20;
+    moveButton.content = "Move";
+
+    const buildButton = new FunctionButton();
+    buildButton.w = 20;
+    buildButton.h = 20;
+    buildButton.content = "Build";
+
+    dashboard.addButton(moveButton);
+    dashboard.addButton(buildButton);
+
+    buildButton.x += 80;
+
 
     this.render();
   }

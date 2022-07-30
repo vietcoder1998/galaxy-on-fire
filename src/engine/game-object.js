@@ -109,10 +109,9 @@ class Tile extends GameObject {
     ]);
 
     if (detect) {
+      console.log('detect', col, row)
       this.selected = true;
-    } else {
-      this.selected = false;
-    }
+    } 
   }
 
   draw() {
@@ -179,6 +178,22 @@ class TitleMap extends GameObject {
     this.tiles = tiles;
   }
 
+  onMouseDown(e) {
+    this.tiles.forEach((row) => {
+      row.forEach((item) => {
+        item.onMouseDown(e);
+      });
+    });
+  }
+
+  onMouseMove(e) {
+    this.tiles.forEach((row) => {
+      row.forEach((item) => {
+        item.onMouseMove(e);
+      });
+    });
+  }
+
   draw() {
     if (this.dImage && this.dImage.src && this.imgs.length > 0) {
       this._ctx.drawImage(this.dImage.src, init.x);
@@ -210,11 +225,36 @@ class UI extends GameObject {
   binding() {
     drawRawSelected(this._ctx, this.x, this.y, this.w, this.h);
   }
+
+  addButton(ob) {
+    ob.x = this.x + 10;
+    ob.y = this.y + 10;
+    ob.w = 60;
+    ob.h = 40;
+    this.add(ob, "objects");
+  }
 }
 
 class Button extends GameObject {
   borderColor = "red";
+  content = "";
   binding() {
     drawRawSelected(this._ctx, this.x, this.y, this.w, this.h);
+  }
+
+  onMouseDown(e) {
+    const { x, y, w, h } = this;
+    const detect = detectOver({ x, y, w, h }, [[this._mouse.x, this._mouse.y]]);
+
+    if (detect) {
+      this.onClick(e);
+    }
+  }
+
+  onClick(e) {}
+
+  draw() {
+    this._ctx.font = "15px Arial";
+    this._ctx.fillText(this.content, this.x + 10, this.y + 10);
   }
 }

@@ -10,11 +10,9 @@ class Scene1Controller extends GameController {
       this._objects?.forEach((ob) => {
         const tX = x + w;
         const tY = y + h;
-
         // map
         const minX = tX > x ? x : tX;
         const maxX = tX < x ? x : tX;
-
         const minY = tY > y ? y : tY;
         const maxY = tY < y ? y : tY;
 
@@ -34,15 +32,14 @@ class Scene1Controller extends GameController {
         });
 
         if (inRange && ob?.zIndex > -1) {
-          ob.selected = true;
-        }
+          ob.onDetect(e);
+        } else ob.onNoneDetect(e);
       });
     }
   }
 
   onMouseDown(e) {
     const { x, y, down } = this._objects.at(-1);
-    // detect event in mouse change
 
     if (down) {
       this._objects?.slice(0, -2).forEach((ob) => {
@@ -61,7 +58,9 @@ class Scene1Controller extends GameController {
         });
 
         if (inRange && ob?.zIndex > -1) {
-          ob.selected = !ob.selected;
+          ob.onDetect(e);
+        } else {
+          ob.onNoneDetect(e);
         }
       });
     }

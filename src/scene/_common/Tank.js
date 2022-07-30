@@ -194,4 +194,8 @@ class Tank extends Sprite {
       this.selected = true;
     }
   }
+
+  onDetect(e) {
+    this.selected = !this.selected
+  }
 }

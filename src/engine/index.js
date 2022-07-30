@@ -96,8 +96,10 @@ class Behavior {
   onKeyDown(e) {}
   onKeyUp(e) {}
   onMouseUp(e) {}
+
   keyListen = [];
 }
+
 class Component extends Behavior {
   x;
   y;
@@ -119,70 +121,54 @@ class Component extends Behavior {
   get _instance() {
     return _instance;
   }
-
   get _global() {
     return _global;
   }
-
   get _cameras() {
     return this._instance.cameras;
   }
-
   get _objects() {
     return this._instance.objects;
   }
-
   get _tiles() {
     return this._instance.tiles;
   }
-
   get _controllers() {
     return this._instance.controllers;
   }
-
   get _canvas() {
     return this._global.canvas;
   }
-
   set _canvas(canvas) {
     this._global.canvas = canvas;
   }
-
   get _mouse() {
     return this._global.mouse;
   }
-
   set _mouse(mouse) {
     this._global.mouse = mouse;
   }
-
   get _ctx() {
     return this._global.ctx;
   }
-
   get _scene() {
     return this._global.scene;
   }
-
   set _scene(scene) {
     this._global.scene = scene;
   }
-
   set _ctx(ctx) {
     this._global.ctx = ctx;
   }
-
   get _pos() {
     return {
       x: this.x + this.w / 2,
       y: this.y + this.h / 2,
     };
   }
-
   set _pos(pos) {
     (this.x = pos - this.w / 2), (this.y = pos - this.h / 2);
   }
-
   set _velocity(velocity) {
     this.velocity = {
       x: velocity.x ?? 0,
@@ -203,6 +189,20 @@ class Component extends Behavior {
     this.init();
   }
   init() {}
+
+  // add game object
+  add(ob, name) {
+    if (Object.keys(_instance).includes(name)) {
+      this._instance[name].push(ob);
+    }
+  }
+  addList(list, name) {
+    if (list && list.length > 0) {
+      list.map((item) => {
+        this.add(item, name);
+      });
+    }
+  }
 
   // before life cycle
   beforeDraw(context) {}
@@ -470,25 +470,9 @@ class Scene extends Component {
     this.s = s;
   }
 
-  // add game object
-  add(ob, name) {
-    if (Object.keys(_instance).includes(name)) {
-      this._instance[name].push(ob);
-    }
-  }
-
-  addList(list, name) {
-    if (list && list.length > 0) {
-      list.map((item) => {
-        this.add(item, name);
-      });
-    }
-  }
-
   // render ( only scene render)
   render() {
     // add listen event
-    console.log(this._global, this._instance)
     listenEvent(this._global, this._instance);
 
     try {
@@ -624,6 +608,8 @@ class GameObject extends Component {
     this.s = s;
   }
 
+  onNoneDetect(e) {}
+  onDetect(e) {}
   binding() {
     if (this.gravity) {
       this.y += this.velocity.y;
@@ -632,14 +618,11 @@ class GameObject extends Component {
 
     this.checkCollision();
   }
-
   handleOnCollision(cpX, cpY) {
     this.x -= cpX;
     this.y -= cpY;
-
     this._velocity = { x: 0, y: 0 };
   }
-
   checkCollision() {
     const results = [];
     this._objects
@@ -659,7 +642,6 @@ class GameObject extends Component {
     return results;
   }
 }
-
 class MouseObject extends Component {
   zIndex = 999;
   selected = false;
