@@ -10,5 +10,14 @@ class DashboardUI extends UI {
     this.h = h;
     this.s = s;
   }
-}
 
+  addButton(obs) {
+    obs.forEach((ob, i) => {
+      ob.x = this.x + i * 80;
+      ob.y = this.y 
+      ob.w = 60;
+      ob.h = 40;
+      this.add(ob, "objects");
+    });
+  }
+}

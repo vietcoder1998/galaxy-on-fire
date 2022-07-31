@@ -1,4 +1,6 @@
 /// _global define
+const path = require("path");
+
 const _instance = {
   objects: [],
   tiles: [],
@@ -199,6 +201,8 @@ class Component extends Behavior {
   addList(list, name) {
     if (list && list.length > 0) {
       list.map((item) => {
+        item.x += this.x;
+        item.y += this.y;
         this.add(item, name);
       });
     }
@@ -572,6 +576,7 @@ class GameObject extends Component {
   h = 0;
   s = 0;
   r = 0;
+  src;
   fps;
   type;
   velocity = {
@@ -606,6 +611,15 @@ class GameObject extends Component {
     this.w = w;
     this.h = h;
     this.s = s;
+  }
+
+  setImage(src) {
+    const img = new Image();
+    img.src = path.resolve(__dirname, "mimic", "src", `${src}`);
+    img.width = 400;
+    img.height = 400;
+
+    this.img = img;
   }
 
   onNoneDetect(e) {}

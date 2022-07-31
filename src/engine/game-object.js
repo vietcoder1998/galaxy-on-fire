@@ -87,6 +87,7 @@ class Tile extends GameObject {
   row;
   selected = false;
   zIndex = 1;
+  active = false;
 
   constructor(name, x, y, w, h, id, r, s) {
     super(name, x, y, w, h, id, r, s);
@@ -100,18 +101,14 @@ class Tile extends GameObject {
   }
 
   onMouseMove(e) {
-    const { x, y, w, h } = this._mouse;
-    const detect = detectOver({ x, y, w, h }, [
-      [this.x, this.y],
-      [this.x + this.w, this.y],
-      [this.x + this.w, this.y + this.h],
-      [this.x, this.y + this.h],
-    ]);
+    const { x, y, w, h } = this;
+    const detect = detectOver({ x, y, w, h }, [[e.clientX, e.clientY]]);
 
-    if (detect) {
-      console.log('detect', col, row)
+    if (detect && this.active) {
       this.selected = true;
-    } 
+    } else {
+      this.selected = false;
+    }
   }
 
   draw() {
@@ -225,18 +222,11 @@ class UI extends GameObject {
   binding() {
     drawRawSelected(this._ctx, this.x, this.y, this.w, this.h);
   }
-
-  addButton(ob) {
-    ob.x = this.x + 10;
-    ob.y = this.y + 10;
-    ob.w = 60;
-    ob.h = 40;
-    this.add(ob, "objects");
-  }
 }
 
 class Button extends GameObject {
   borderColor = "red";
+  fontColor = "black";
   content = "";
   binding() {
     drawRawSelected(this._ctx, this.x, this.y, this.w, this.h);
@@ -244,6 +234,7 @@ class Button extends GameObject {
 
   onMouseDown(e) {
     const { x, y, w, h } = this;
+    // detect one
     const detect = detectOver({ x, y, w, h }, [[this._mouse.x, this._mouse.y]]);
 
     if (detect) {
@@ -254,6 +245,8 @@ class Button extends GameObject {
   onClick(e) {}
 
   draw() {
+    this.clear();
+    this._ctx.fillStyle = this.fontColor;
     this._ctx.font = "15px Arial";
     this._ctx.fillText(this.content, this.x + 10, this.y + 10);
   }

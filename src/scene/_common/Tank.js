@@ -88,7 +88,7 @@ class Tank extends Sprite {
   shoot(enemy) {
     const bullet = new Bullet("", this._pos.x, this._pos.y, 1, 1, "", 2);
     bullet.color = "yellow";
-    bullet.velocity = calculatevelocity2D(
+    bullet.velocity = calculateVector2D(
       this._pos.x,
       this._pos.y,
       enemy._pos.x,
@@ -110,6 +110,7 @@ class Tank extends Sprite {
       this.bullets?.forEach((item) => item?.launch());
     }
   }
+
   onMouseDown(e) {
     const { x, y, w, h } = this;
     const detect = detectOver({ x, y, w, h }, [[this._mouse.x, this._mouse.y]]);
@@ -126,7 +127,7 @@ class Tank extends Sprite {
     if (this.selected) {
       drawDashedLine(this._ctx, this._pos.x, this._pos.y, e.clientX, e.clientY);
 
-      this.velocity = calculatevelocity2D(
+      this.velocity = calculateVector2D(
         this._pos.x,
         this._pos.y,
         e.clientX - this.w / 2,
@@ -196,6 +197,51 @@ class Tank extends Sprite {
   }
 
   onDetect(e) {
-    this.selected = !this.selected
+    this.selected = !this.selected;
+  }
+
+  draw() {
+    if (this.img) {
+      this._ctx.drawImage(
+        this.img,
+        20,
+        20,
+        180,
+        250,
+        this.x,
+        this.y,
+        this.w,
+        this.h
+      );
+    }
+  }
+}
+
+class EnemyTank extends Tank {
+  constructor(name, x, y, w, h, s, id) {
+    super(name, x, y, w, h, s, id);
+    this.name = name;
+    this.id = id;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.s = s;
+  }
+
+  draw() {
+    if (this.img) {
+      this._ctx.drawImage(
+        this.img,
+        220,
+        20,
+        180,
+        250,
+        this.x,
+        this.y,
+        this.w,
+        this.h
+      );
+    }
   }
 }

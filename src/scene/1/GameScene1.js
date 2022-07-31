@@ -28,10 +28,16 @@ class GameScene1 extends Scene {
 
     this._ctx = ctx;
     this._canvas = canvas;
-    const tank1 = new Tank("tank1", 100, 200, 30, 30, 20, "tank1");
-    const tank2 = new Tank("tank2", 180, 300, 30, 30, 20, "tank2");
-    const tank3 = new Tank("tank3", 300, 360, 30, 30, 20, "tank3");
-    const enemy = new Tank("tank4", 600, 400, 30, 30, 20, "tank4");
+    const tank1 = new Tank("tank1", 100, 200, 50, 50, 20, "tank1");
+    const tank2 = new Tank("tank2", 180, 300, 50, 50, 20, "tank2");
+    const tank3 = new Tank("tank3", 300, 360, 50, 50, 20, "tank3");
+    const enemy = new EnemyTank("tank4", 600, 400, 50, 50, 20, "tank4");
+
+    tank1.setImage('../../assets/items.png')
+    tank2.setImage('../../assets/items.png')
+    tank3.setImage("../../assets/items.png");
+
+    enemy.setImage("../../assets/items.png");
     const dashboard = new DashboardUI(
       "dashboard",
       500,
@@ -51,6 +57,17 @@ class GameScene1 extends Scene {
       50,
       50
     );
+
+    const buildingHouse = new DashboardUI(
+      "dashboard",
+      50,
+      500,
+      250,
+      200,
+      20,
+      "tank4"
+    );
+
     const mouse = new MouseActive("mouse", 0, 0, 0, 0, "mouse1", 0);
 
     map.setTile([20, 20]);
@@ -66,7 +83,10 @@ class GameScene1 extends Scene {
     this._mouse = mouse;
     this._scene = this;
 
-    this.addList([dashboard, tank1, tank2, tank3, enemy], "objects");
+    this.addList(
+      [dashboard, buildingHouse, tank1, tank2, tank3, enemy],
+      "objects"
+    );
     this.addList([camera], "cameras");
     this.addList([map], "tiles");
     this.addList([gameController], "controllers");
@@ -82,11 +102,24 @@ class GameScene1 extends Scene {
     buildButton.h = 20;
     buildButton.content = "Build";
 
-    dashboard.addButton(moveButton);
-    dashboard.addButton(buildButton);
+    dashboard.addButton([moveButton, buildButton]);
+
+    // building UI
+    const building1 = new FunctionButton();
+    building1.w = 20;
+    building1.h = 20;
+    building1.content = "Building1";
+
+    const building2 = new FunctionButton();
+    building2.w = 20;
+    building2.h = 20;
+    building2.content = "Building2";
+
+    buildingHouse.addButton([building1, building2]);
+
+    ////
 
     buildButton.x += 80;
-
 
     this.render();
   }
