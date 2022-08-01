@@ -1,4 +1,4 @@
-function detectOver(compare, detect) {
+export function detectOver(compare, detect) {
   let inRange = false;
 
   const { x, w, y, h } = compare;

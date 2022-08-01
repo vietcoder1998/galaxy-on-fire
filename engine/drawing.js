@@ -1,4 +1,4 @@
-function drawSelected(ctx, x, y, w, h) {
+export function drawSelected(ctx, x, y, w, h) {
   ctx.restore();
 
   ctx.beginPath();
@@ -81,7 +81,7 @@ function drawDashedLine(ctx, x, y, ex, ey) {
   ctx.setLineDash([]);
 }
 
-function drawCircle(ctx, x, y, r, color) {
+export function drawCircle(ctx, x, y, r, color) {
   ctx.restore();
 
   ctx.beginPath();
@@ -90,7 +90,7 @@ function drawCircle(ctx, x, y, r, color) {
   ctx.stroke();
 }
 
-function drawHealth(ctx, x, y, percent) {
+export function drawHealth(ctx, x, y, percent) {
   ctx.restore();
 
   ctx.moveTo(x, y);

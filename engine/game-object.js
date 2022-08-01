@@ -1,4 +1,6 @@
-class Sprite extends GameObject {
+import { GameObject } from "./base";
+
+export class Sprite extends GameObject {
   x = 0;
   y = 0;
   w = 0;
@@ -33,7 +35,7 @@ class Sprite extends GameObject {
   }
 }
 
-class Camera extends GameObject {
+export class Camera extends GameObject {
   x;
   y;
   w;
@@ -78,7 +80,7 @@ class Camera extends GameObject {
   }
 }
 
-class Tile extends GameObject {
+export class Tile extends GameObject {
   x;
   y;
   w;
@@ -132,7 +134,7 @@ class Tile extends GameObject {
   }
 }
 
-class TitleMap extends GameObject {
+export class TitleMap extends GameObject {
   tiles = [];
   color = "whitesmoke";
   type = "tilemap";
@@ -217,14 +219,14 @@ class TitleMap extends GameObject {
   }
 }
 
-class UI extends GameObject {
+export class UI extends GameObject {
   borderColor = "black";
   binding() {
     drawRawSelected(this._ctx, this.x, this.y, this.w, this.h);
   }
 }
 
-class Button extends GameObject {
+export class Button extends GameObject {
   borderColor = "red";
   fontColor = "black";
   content = "";
