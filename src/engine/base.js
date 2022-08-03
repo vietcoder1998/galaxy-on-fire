@@ -658,6 +658,7 @@ export class GameObject extends Component {
     return results;
   }
 }
+
 export class MouseObject extends Component {
   zIndex = 999;
   selected = false;

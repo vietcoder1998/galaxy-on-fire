@@ -3,7 +3,7 @@ const path = require('path')
 module.exports = {
   mode: "development",
   entry: {
-    game: path.join(__dirname, "src/scene/index.js"),
+    game: path.join(__dirname, "src/scene/1/GameScene1.js"),
   },
   resolve: {
     fallback: {

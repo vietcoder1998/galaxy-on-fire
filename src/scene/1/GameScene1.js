@@ -36,9 +36,9 @@ export default class GameScene1 extends Scene {
 
     this._ctx = ctx;
     this._canvas = canvas;
-    const tank1 = new Tank("tank1", 100, 200, 50, 50, 20, "tank1");
-    const tank2 = new Tank("tank2", 180, 300, 50, 50, 20, "tank2");
-    const tank3 = new Tank("tank3", 300, 360, 50, 50, 20, "tank3");
+    const tank1 = new Tank("tank1", 100, 200, 30, 30, 20, "tank1");
+    const tank2 = new Tank("tank2", 180, 300, 30, 30, 20, "tank2");
+    const tank3 = new Tank("tank3", 300, 360, 30, 30, 20, "tank3");
     const enemy = new EnemyTank("tank4", 600, 400, 50, 50, 20, "tank4");
 
     tank1.setImage("../../assets/items.png");

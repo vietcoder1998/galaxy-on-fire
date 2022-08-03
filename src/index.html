@@ -23,17 +23,16 @@
             style="position: absolute; top: 0"
           />
         </div>
-        <div
-          id="info"
-          style="
-            width: 200px;
-            height: calc(100vh - 40px);
-            overflow-y: auto;
-            padding: 10px;
-          "
-        ></div>
       </div>
+    </div>
+    <div>
+        <canvas
+          id="view"
+        ></canvas>
     </div>
   </body>
   <script src="build/game.bundle.js"></script>
+  <script>
+    new GameScene1("game_scene1", 0, 0, 2000, 1200);
+  </script>
 </html>
