@@ -1,3 +1,5 @@
+import { drawX, drawSelected } from "./drawing";
+
 /// _global define
 const path = require("path");
 
@@ -701,7 +703,7 @@ export class MouseObject extends Component {
       this.clear();
       drawX(this._ctx, this.x - 10, this.y - 10, 10, 3);
     } else {
-      drawRawSelected(this._ctx, this.x, this.y, this.w, this.h);
+      drawSelected(this._ctx, this.x, this.y, this.w, this.h);
     }
   }
 }

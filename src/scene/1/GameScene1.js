@@ -5,7 +5,7 @@ import MouseActive from '../_common/MouseActive';
 import CameraScene1 from '../_common/Camera';
 import Scene1Controller from '../_common/Controller';
 import FunctionButton from '../_common/FunctionButton';
-
+import { Scene } from "../../engine";
 export default class GameScene1 extends Scene {
   x;
   y;
@@ -66,7 +66,7 @@ export default class GameScene1 extends Scene {
       50
     );
 
-    const buildingHouse = new Das(
+    const buildingHouse = new DashboardUI(
       "dashboard",
       50,
       500,

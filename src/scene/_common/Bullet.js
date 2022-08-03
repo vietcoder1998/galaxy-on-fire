@@ -1,3 +1,5 @@
+import { Sprite } from "../../engine";
+
 // Wallet
 class Bullet extends Sprite {
   type = "sprite";

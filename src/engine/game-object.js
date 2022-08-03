@@ -1,4 +1,6 @@
 import { GameObject } from "./base";
+import { drawRawSelected, drawSquare } from "./drawing";
+import { detectOver } from './lib';
 
 export class Sprite extends GameObject {
   x = 0;

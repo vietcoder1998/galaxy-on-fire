@@ -1,4 +1,8 @@
 import { Sprite } from "../../engine";
+import { drawCircle, drawHealth, drawDashedLine } from '../../engine/drawing';
+import { detectOver } from "../../engine/lib";
+import { calculateVector2D } from '../../engine/math';
+import Bullet from './Bullet';
 
 export class Tank extends Sprite {
   speed = 2;
@@ -40,9 +44,9 @@ export class Tank extends Sprite {
   loop() {
     if (this.alive) {
       if (this.selected || this.isAttack) {
-        drawHealth(_global.ctx, this.x, this.y - 20, this.percent);
+        drawHealth(this._ctx, this.x, this.y - 20, this.percent);
         drawCircle(
-          _global.ctx,
+          this._ctx,
           this._pos.x,
           this._pos.y,
           this.attRange,
@@ -201,22 +205,6 @@ export class Tank extends Sprite {
   onDetect(e) {
     this.selected = !this.selected;
   }
-
-  draw() {
-    if (this.img) {
-      this._ctx.drawImage(
-        this.img,
-        20,
-        20,
-        180,
-        250,
-        this.x,
-        this.y,
-        this.w,
-        this.h
-      );
-    }
-  }
 }
 
 export class EnemyTank extends Tank {
@@ -229,21 +217,5 @@ export class EnemyTank extends Tank {
     this.w = w;
     this.h = h;
     this.s = s;
-  }
-
-  draw() {
-    if (this.img) {
-      this._ctx.drawImage(
-        this.img,
-        220,
-        20,
-        180,
-        250,
-        this.x,
-        this.y,
-        this.w,
-        this.h
-      );
-    }
   }
 }

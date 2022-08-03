@@ -12,7 +12,7 @@ export function drawSelected(ctx, x, y, w, h) {
   ctx.stroke();
 }
 
-function drawSquare(ctx, x, y, w, h, color) {
+export function drawSquare(ctx, x, y, w, h, color) {
   ctx.restore();
 
   ctx.beginPath();
@@ -26,7 +26,7 @@ function drawSquare(ctx, x, y, w, h, color) {
   ctx.stroke();
 }
 
-function drawRawSelected(ctx, x, y, w, h) {
+export function drawRawSelected(ctx, x, y, w, h) {
   ctx.restore();
 
   ctx.beginPath();
@@ -40,7 +40,7 @@ function drawRawSelected(ctx, x, y, w, h) {
   ctx.stroke();
 }
 
-function detectRange(ctx, x, y, w, h) {
+export function detectRange(ctx, x, y, w, h) {
   ctx.restore();
 
   ctx.beginPath();
@@ -54,7 +54,7 @@ function detectRange(ctx, x, y, w, h) {
   ctx.stroke();
 }
 
-function drawX(ctx, x, y, s, w) {
+export function drawX(ctx, x, y, s, w) {
   ctx.restore();
 
   ctx.beginPath();
@@ -67,7 +67,7 @@ function drawX(ctx, x, y, s, w) {
   ctx.stroke();
 }
 
-function drawDashedLine(ctx, x, y, ex, ey) {
+export function drawDashedLine(ctx, x, y, ex, ey) {
   // Dashed line
   ctx.restore();
 

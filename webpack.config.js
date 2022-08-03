@@ -1,10 +1,9 @@
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path')
 
 module.exports = {
   mode: "development",
   entry: {
-    scene1: path.join(__dirname, "src/scene/1", "GameScene1.js"),
+    game: path.join(__dirname, "src/scene/index.js"),
   },
   resolve: {
     fallback: {
@@ -13,8 +12,7 @@ module.exports = {
   },
   output: {
     path: path.join(__dirname, "src/build"),
-    filename: "[name].js",
+    filename: "[name].bundle.js",
     clean: false,
   },
-  plugins: [new HtmlWebpackPlugin()],
 };
