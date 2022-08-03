@@ -1,4 +1,4 @@
-import { Camera } from "../engine";
+import { Camera } from "../../engine";
 
 export default class CameraScene1 extends Camera {
   speed = 3;

@@ -1,4 +1,4 @@
-import { Sprite } from "../engine";
+import { Sprite } from "../../engine";
 
 export class Tank extends Sprite {
   speed = 2;

@@ -1,6 +1,6 @@
-import { Button } from "../engine";
+import { Button } from "../../engine";
 
-class FunctionButton extends Button {
+export default class FunctionButton extends Button {
   onClick(e) {
     console.log("onclick ->", e);
   }

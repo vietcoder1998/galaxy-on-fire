@@ -1,4 +1,12 @@
-class GameScene1 extends Scene {
+import { EnemyTank, Tank } from "../_common/Tank";
+import DashboardUI from '../_common/ControlUI';
+import TitleMapScene1 from '../_common/TitleMap';
+import MouseActive from '../_common/MouseActive';
+import CameraScene1 from '../_common/Camera';
+import Scene1Controller from '../_common/Controller';
+import FunctionButton from '../_common/FunctionButton';
+
+export default class GameScene1 extends Scene {
   x;
   y;
   w;
@@ -33,8 +41,8 @@ class GameScene1 extends Scene {
     const tank3 = new Tank("tank3", 300, 360, 50, 50, 20, "tank3");
     const enemy = new EnemyTank("tank4", 600, 400, 50, 50, 20, "tank4");
 
-    tank1.setImage('../../assets/items.png')
-    tank2.setImage('../../assets/items.png')
+    tank1.setImage("../../assets/items.png");
+    tank2.setImage("../../assets/items.png");
     tank3.setImage("../../assets/items.png");
 
     enemy.setImage("../../assets/items.png");
@@ -58,7 +66,7 @@ class GameScene1 extends Scene {
       50
     );
 
-    const buildingHouse = new DashboardUI(
+    const buildingHouse = new Das(
       "dashboard",
       50,
       500,

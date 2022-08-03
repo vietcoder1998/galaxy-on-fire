@@ -1,6 +1,6 @@
-import { UI } from "../engine";
+import { UI } from "../../engine";
 
-class DashboardUI extends UI {
+export default class DashboardUI extends UI {
   color = "white";
   constructor(name, x, y, w, h, s, id) {
     super(name, x, y, w, h, s, id);
