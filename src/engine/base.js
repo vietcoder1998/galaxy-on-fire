@@ -1,4 +1,4 @@
-import { drawX, drawSelected } from "./drawing";
+import { drawX, drawSelected, drawCircle } from "./drawing";
 
 /// _global define
 const path = require("path");
