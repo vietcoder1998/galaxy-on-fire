@@ -1,7 +1,7 @@
 //mouse
-
+import { GameController } from "../engine";
 // Game controller
-class Scene1Controller extends GameController {
+export default class Scene1Controller extends GameController {
   keyListen = [];
 
   onMouseMove(e) {

@@ -46,3 +46,6 @@ class Bullet extends Sprite {
     }
   }
 }
+
+
+export default Bullet

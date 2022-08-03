@@ -1,4 +1,6 @@
-class CameraScene1 extends Camera {
+import { Camera } from "../engine";
+
+export default class CameraScene1 extends Camera {
   speed = 3;
 
   constructor(name, x, y, w, h, id, s) {

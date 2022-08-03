@@ -1,3 +1,5 @@
+import { UI } from "../engine";
+
 class DashboardUI extends UI {
   color = "white";
   constructor(name, x, y, w, h, s, id) {

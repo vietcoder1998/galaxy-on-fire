@@ -1,4 +1,6 @@
-class Tank extends Sprite {
+import { Sprite } from "../engine";
+
+export class Tank extends Sprite {
   speed = 2;
   velocity = {
     x: 0,
@@ -217,7 +219,7 @@ class Tank extends Sprite {
   }
 }
 
-class EnemyTank extends Tank {
+export class EnemyTank extends Tank {
   constructor(name, x, y, w, h, s, id) {
     super(name, x, y, w, h, s, id);
     this.name = name;

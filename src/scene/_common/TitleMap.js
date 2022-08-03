@@ -1,4 +1,6 @@
-class TitleMapScene1 extends TitleMap {
+import { TitleMap } from "../engine";
+
+export default class TitleMapScene1 extends TitleMap {
   column = 10;
   row = 10;
 
