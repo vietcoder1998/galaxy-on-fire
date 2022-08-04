@@ -664,6 +664,10 @@ export class MouseObject extends Component {
   selected = false;
   down = false;
   type = "mouse";
+  last={
+    x: 0,
+    y: 0,
+  }
 
   constructor(name, x, y, w, h, s, id) {
     super(name, x, y, w, h, s, id);
@@ -682,10 +686,18 @@ export class MouseObject extends Component {
     this.w = 0;
     this.h = 0;
 
+    this.last = {
+      x: e.clientX,
+      y: e.clientY
+    }
+
     this.down = true;
   }
 
   onMouseMove(e) {
+    this.x = e.clientX
+    this.y = e.clientY
+
     if (this.down) {
       this.w = e.clientX - this.x;
       this.h = e.clientY - this.y;
@@ -704,7 +716,7 @@ export class MouseObject extends Component {
       this.clear();
       drawX(this._ctx, this.x - 10, this.y - 10, 10, 3);
     } else {
-      drawSelected(this._ctx, this.x, this.y, this.w, this.h);
+      drawSelected(this._ctx, this.last.x, this.last.y, this.w, this.h);
     }
   }
 }

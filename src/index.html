@@ -14,7 +14,7 @@
     <div style="display: flex; height: 100vh">
       <canvas style="border: 1px" id="defaultGame"></canvas>
       <div style="right: 0px; top: 0px; list-style-type: none" rows="20">
-        <div style="position: relative; height: 40px; margin: 10px">
+        <div id="info" style="position: relative; height: 40px; margin: 10px">
           <input
             id="searchKey"
             type="search"
@@ -32,7 +32,4 @@
     </div>
   </body>
   <script src="build/game.bundle.js"></script>
-  <script>
-    new GameScene1("game_scene1", 0, 0, 2000, 1200);
-  </script>
 </html>

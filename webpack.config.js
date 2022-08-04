@@ -3,7 +3,7 @@ const path = require('path')
 module.exports = {
   mode: "development",
   entry: {
-    game: path.join(__dirname, "src/scene/1/GameScene1.js"),
+    game: path.join(__dirname, "src/scene/index.js"),
   },
   resolve: {
     fallback: {
@@ -13,6 +13,6 @@ module.exports = {
   output: {
     path: path.join(__dirname, "src/build"),
     filename: "[name].bundle.js",
-    clean: false,
+    clean: true,
   },
 };

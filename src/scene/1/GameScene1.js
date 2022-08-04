@@ -59,8 +59,8 @@ export default class GameScene1 extends Scene {
       "tile_map",
       20,
       20,
-      800,
-      800,
+      1200,
+      1200,
       "game1",
       50,
       50
